@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Compras - Restaurante</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+    <style>
+        :root {
+            --verde-escuro: #2b4d2b;
+            --verde-medio: #4e7d4e;
+            --verde-claro: #b7d7b7;
+            --bege: #f6f3e7;
+            --branco: #fff;
+            --cinza: #e9ecef;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bege) 0%, var(--verde-claro) 100%);
+            min-height: 100vh;
+            color: var(--verde-escuro);
+        }
+
+        .container {
+            max-width: 450px;
+            margin: 0 auto;
+            background: var(--branco);
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(43,77,43,0.08);
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--verde-escuro), var(--verde-medio));
+            color: var(--bege);
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(43,77,43,0.08);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .header .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--bege);
+            border-bottom: 1px solid var(--cinza);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            color: var(--verde-escuro);
+        }
+
+        .tab.active {
+            background: var(--branco);
+            border-bottom-color: var(--verde-medio);
+            color: var(--verde-medio);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .add-form {
+            background: var(--bege);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid var(--cinza);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--verde-escuro);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--cinza);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: var(--branco);
+            color: var(--verde-escuro);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--verde-medio);
+            box-shadow: 0 0 0 3px rgba(78,125,78,0.08);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--verde-medio), var(--verde-escuro));
+            color: var(--bege);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(78,125,78,0.15);
+            background: linear-gradient(135deg, var(--verde-escuro), var(--verde-medio));
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #3e7d3e, #6bbf59);
+            color: var(--branco);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #b94e4e, #e74c3c);
+            color: var(--branco);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f3e29c, #e6c94d);
+            color: var(--verde-escuro);
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 14px;
+            width: auto;
+            margin: 2px;
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            background: var(--branco);
+            border: 2px solid var(--cinza);
+        }
+
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .category-btn {
+            background: var(--bege);
+            border: 2px solid var(--verde-medio);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+            font-size: 14px;
+            color: var(--verde-escuro);
+        }
+
+        .category-btn.active {
+            background: var(--verde-medio);
+            color: var(--bege);
+            border-color: var(--verde-medio);
+        }
+
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item {
+            background: var(--branco);
+            border: 2px solid var(--cinza);
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .item.completed {
+            opacity: 0.7;
+            background: var(--bege);
+        }
+
+        .item.completed .item-name {
+            text-decoration: line-through;
+        }
+
+        .item-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .item-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 16px;
+            flex: 1;
+        }
+
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: var(--verde-medio);
+            margin-bottom: 10px;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: #3e7d3e;
+            font-size: 16px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .total-section {
+            background: linear-gradient(135deg, var(--verde-medio), var(--verde-escuro));
+            color: var(--bege);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .total-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .history-item {
+            background: var(--branco);
+            border: 2px solid var(--cinza);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-date {
+            font-weight: 600;
+            color: var(--verde-escuro);
+        }
+
+        .history-total {
+            font-weight: 600;
+            color: #3e7d3e;
+        }
+
+        .history-items {
+            font-size: 14px;
+            color: var(--verde-medio);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #3e7d3e;
+            color: var(--bege);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(43,77,43,0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .offline-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #b94e4e;
+            color: var(--bege);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alternative-form {
+            background: #f6f3e7;
+            border: 2px solid #e6c94d;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .predefined-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .predefined-item {
+            background: var(--branco);
+            border: 2px solid var(--verde-medio);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            transition: all 0.3s;
+            color: var(--verde-escuro);
+        }
+
+        .predefined-item:hover {
+            border-color: var(--verde-escuro);
+            background: var(--verde-claro);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100%;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .category-filter {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 Lista de Compras</h1>
+            <div class="subtitle">Restaurante - Sincronizado</div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('current')">Lista Atual</button>
+            <button class="tab" onclick="showTab('history')">Histórico</button>
+        </div>
+
+        <!-- MENU DE NAVEGAÇÃO POR CATEGORIA (compacto) -->
+        <div class="category-nav" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0;">
+            <button class="category-btn active" onclick="showPredefinedByCategory('Cereais / Fardos', this)">Cereais/Fardos</button>
+            <button class="category-btn" onclick="showPredefinedByCategory('Proteínas', this)">Proteínas</button>
+            <button class="category-btn" onclick="showPredefinedByCategory('Laticínios', this)">Laticínios</button>
+            <button class="category-btn" onclick="showPredefinedByCategory('Frutas', this)">Frutas</button>
+            <button class="category-btn" onclick="showPredefinedByCategory('Verduras', this)">Verduras</button>
+            <button class="category-btn" onclick="showPredefinedByCategory('Legumes', this)">Legumes</button>
+            <button class="category-btn" onclick="showPredefinedByCategory('Limpeza', this)">Limpeza</button>
+            <button class="category-btn" onclick="showPredefinedByCategory('Bebidas', this)">Bebidas</button>
+        </div>
+
+        <!-- Aba Lista Atual -->
+        <div id="current" class="tab-content active">
+            <!-- Formulário de Adicionar Item -->
+            <div class="add-form">
+                <h3 style="margin-bottom: 15px;">➕ Adicionar Item</h3>
+                
+                <!-- Itens Pré-definidos -->
+                <div class="predefined-items" id="predefinedItems">
+                    <!-- Será populado pelo JavaScript -->
+                </div>
+
+                <div class="form-group">
+                    <label>Nome do Produto *</label>
+                    <input type="text" id="itemName" placeholder="Ex: Arroz 5kg" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Quantidade *</label>
+                        <input type="text" id="itemQuantity" placeholder="Ex: 2 kg" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Valor (R$)</label>
+                        <input type="number" id="itemPrice" placeholder="0,00" step="0.01" min="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select id="itemCategory">
+                        <option value="">Selecione...</option>
+                        <option value="Cereais / Fardos">Cereais / Fardos</option>
+                        <option value="Proteínas">Proteínas</option>
+                        <option value="Laticínios">Laticínios</option>
+                        <option value="Frutas">Frutas</option>
+                        <option value="Verduras">Verduras</option>
+                        <option value="Legumes">Legumes</option>
+                        <option value="Limpeza">Limpeza</option>
+                        <option value="Bebidas">Bebidas</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="addItem()">Adicionar Item</button>
+            </div>
+
+            <!-- Barra de Pesquisa -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍 Pesquisar item..." onkeyup="filterItems()">
+            </div>
+
+            <!-- Filtro por Categoria -->
+            <div class="category-filter">
+                <button class="category-btn active" onclick="filterByCategory('')">Todas</button>
+                <button class="category-btn" onclick="filterByCategory('Cereais / Fardos')">Cereais/Fardos</button>
+                <button class="category-btn" onclick="filterByCategory('Proteínas')">Proteínas</button>
+                <button class="category-btn" onclick="filterByCategory('Laticínios')">Laticínios</button>
+                <button class="category-btn" onclick="filterByCategory('Frutas')">Frutas</button>
+                <button class="category-btn" onclick="filterByCategory('Verduras')">Verduras</button>
+                <button class="category-btn" onclick="filterByCategory('Legumes')">Legumes</button>
+                <button class="category-btn" onclick="filterByCategory('Limpeza')">Limpeza</button>
+                <button class="category-btn" onclick="filterByCategory('Bebidas')">Bebidas</button>
+            </div>
+
+            <!-- Total -->
+            <div class="total-section">
+                <div class="total-value" id="totalValue">R$ 0,00</div>
+                <div>Total estimado da lista</div>
+            </div>
+
+            <!-- Lista de Itens -->
+            <div class="items-list" id="itemsList">
+                <!-- Itens serão adicionados aqui pelo JavaScript -->
+            </div>
+
+            <!-- Botão Salvar Lista -->
+            <div style="margin-top: 30px;">
+                <button class="btn btn-success" onclick="saveCurrentList()">💾 Salvar Lista do Dia</button>
+            </div>
+        </div>
+
+        <!-- Aba Histórico -->
+        <div id="history" class="tab-content">
+            <h3 style="margin-bottom: 20px;">📋 Histórico de Listas</h3>
+            <div id="historyList">
+                <!-- Histórico será carregado aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicador Offline -->
+    <div class="offline-indicator" id="offlineIndicator">
+        📶 Modo Offline - Dados salvos localmente
+    </div>
+
+    <!-- Notificações -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Configuração do Firebase (SUBSTITUA PELAS SUAS CREDENCIAIS)
+        const firebaseConfig = {
+            apiKey: "your-api-key",
+            authDomain: "your-project.firebaseapp.com",
+            databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "your-app-id"
+        };
+
+        // Inicializar Firebase (comentado para demonstração)
+        // firebase.initializeApp(firebaseConfig);
+        // const database = firebase.database();
+
+        // Simulação de estado para demonstração
+        let items = [];
+        let history = [];
+        let currentFilter = '';
+        let currentCategory = '';
+
+        // Itens pré-definidos baseados na sua lista
+        const predefinedItems = [
+            // CEREAIS / FARDOS
+            { name: "Arroz fd", category: "Cereais / Fardos", unit: "kg" },
+            { name: "Arroz integral", category: "Cereais / Fardos", unit: "kg" },
+            { name: "Açúcar cristal", category: "Cereais / Fardos", unit: "kg" },
+            { name: "Açúcar refinado", category: "Cereais / Fardos", unit: "kg" },
+            { name: "Aveia em flocos", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Aveia fina", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Biscoito água e sal", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Biscoito maizena", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Café", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Cevada", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Farinha de mandioca 1kg", category: "Cereais / Fardos", unit: "1kg" },
+            { name: "Farinha de quibe 500gr", category: "Cereais / Fardos", unit: "500g" },
+            { name: "Farinha de trigo fd c/10kg", category: "Cereais / Fardos", unit: "10kg" },
+            { name: "Fubá de milho 1kg", category: "Cereais / Fardos", unit: "1kg" },
+            { name: "Granola", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Macarrão espaguete", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Macarrão tipo parafuso", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Macarrão tipo arinho", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Macarrão tipo penne", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Massa para lasanha", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Milho para canjica", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Polvilho doce 500gr", category: "Cereais / Fardos", unit: "500g" },
+            { name: "Polvilho azedo 500gr", category: "Cereais / Fardos", unit: "500g" },
+            { name: "Sal refinado", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Sal grosso", category: "Cereais / Fardos", unit: "pct" },
+            { name: "Feijão fd", category: "Cereais / Fardos", unit: "kg" },
+            { name: "Ervilha 500gr", category: "Cereais / Fardos", unit: "500g" },
+
+            // PROTEÍNAS
+            { name: "Atum, 170 gr", category: "Proteínas", unit: "170g" },
+            { name: "Sardinha", category: "Proteínas", unit: "un" },
+            { name: "Ovos", category: "Proteínas", unit: "dz" },
+            { name: "Carne moída", category: "Proteínas", unit: "kg" },
+            { name: "Costelinha de porco", category: "Proteínas", unit: "kg" },
+            { name: "Pernil", category: "Proteínas", unit: "kg" },
+            { name: "Peito de frango", category: "Proteínas", unit: "kg" },
+            { name: "Coxa sobrecoxa", category: "Proteínas", unit: "kg" },
+
+            // LATICÍNIOS
+            { name: "Leite integral 1lt", category: "Laticínios", unit: "1lt" },
+            { name: "Leite de soja", category: "Laticínios", unit: "lt" },
+            { name: "Leite condensado", category: "Laticínios", unit: "pct" },
+            { name: "Leite de coco", category: "Laticínios", unit: "pct" },
+            { name: "Creme de leite cx c/24", category: "Laticínios", unit: "cx" },
+            { name: "Margarina", category: "Laticínios", unit: "pct" },
+            { name: "Queijo", category: "Laticínios", unit: "kg" },
+            { name: "Requeijão", category: "Laticínios", unit: "pct" },
+            { name: "Iogurte", category: "Laticínios", unit: "pct" },
+            { name: "Chantilly", category: "Laticínios", unit: "pct" },
+
+            // FRUTAS
+            { name: "Abacate", category: "Frutas", unit: "kg" },
+            { name: "Abacaxi", category: "Frutas", unit: "und" },
+            { name: "Banana da terra verde", category: "Frutas", unit: "kg" },
+            { name: "Banana da terra madura", category: "Frutas", unit: "kg" },
+            { name: "Banana nanica", category: "Frutas", unit: "kg" },
+            { name: "Caqui", category: "Frutas", unit: "kg" },
+            { name: "Goiaba", category: "Frutas", unit: "kg" },
+            { name: "Kiwi", category: "Frutas", unit: "kg" },
+            { name: "Laranja", category: "Frutas", unit: "kg" },
+            { name: "Lima", category: "Frutas", unit: "kg" },
+            { name: "Limão", category: "Frutas", unit: "kg" },
+            { name: "Maçã", category: "Frutas", unit: "kg" },
+            { name: "Mamão", category: "Frutas", unit: "kg" },
+            { name: "Manga", category: "Frutas", unit: "kg" },
+            { name: "Maracujá", category: "Frutas", unit: "kg" },
+            { name: "Melancia", category: "Frutas", unit: "kg" },
+            { name: "Morango", category: "Frutas", unit: "bdj" },
+            { name: "Nectarina", category: "Frutas", unit: "kg" },
+            { name: "Pera", category: "Frutas", unit: "kg" },
+            { name: "Pêssego", category: "Frutas", unit: "kg" },
+            { name: "Ponkan", category: "Frutas", unit: "kg" },
+            { name: "Tangerina", category: "Frutas", unit: "kg" },
+            { name: "Uva", category: "Frutas", unit: "kg" },
+
+            // VERDURAS
+            { name: "Acelga", category: "Verduras", unit: "und" },
+            { name: "Agrião", category: "Verduras", unit: "maço" },
+            { name: "Alface comum", category: "Verduras", unit: "maço" },
+            { name: "Alface americana", category: "Verduras", unit: "maço" },
+            { name: "Alface crespa", category: "Verduras", unit: "maço" },
+            { name: "Almeirão", category: "Verduras", unit: "maço" },
+            { name: "Cebolinha verde", category: "Verduras", unit: "maço" },
+            { name: "Chicória", category: "Verduras", unit: "maço" },
+            { name: "Coentro", category: "Verduras", unit: "maço" },
+            { name: "Couve manteiga", category: "Verduras", unit: "maço" },
+            { name: "Escarola", category: "Verduras", unit: "maço" },
+            { name: "Espinafre", category: "Verduras", unit: "maço" },
+            { name: "Folhas de mostarda", category: "Verduras", unit: "und" },
+            { name: "Hortelã", category: "Verduras", unit: "un" },
+            { name: "Rúcula", category: "Verduras", unit: "maço" },
+            { name: "Salsinha", category: "Verduras", unit: "maço" },
+
+            // LEGUMES
+            { name: "Abóbora cabotián", category: "Legumes", unit: "kg" },
+            { name: "Abóbora paulista", category: "Legumes", unit: "kg" },
+            { name: "Abobrinha verde", category: "Legumes", unit: "kg" },
+            { name: "Alho", category: "Legumes", unit: "kg" },
+            { name: "Alho poró", category: "Legumes", unit: "und" },
+            { name: "Batata lavada", category: "Legumes", unit: "kg" },
+            { name: "Batata doce", category: "Legumes", unit: "kg" },
+            { name: "Berinjela", category: "Legumes", unit: "kg" },
+            { name: "Beterraba", category: "Legumes", unit: "kg" },
+            { name: "Brócolis", category: "Legumes", unit: "und" },
+            { name: "Cará", category: "Legumes", unit: "kg" },
+            { name: "Cebola", category: "Legumes", unit: "kg" },
+            { name: "Cebola roxa", category: "Legumes", unit: "kg" },
+            { name: "Cenoura", category: "Legumes", unit: "kg" },
+            { name: "Chuchu", category: "Legumes", unit: "kg" },
+            { name: "Couve-flor", category: "Legumes", unit: "und" },
+            { name: "Gengibre", category: "Legumes", unit: "kg" },
+            { name: "Inhame", category: "Legumes", unit: "kg" },
+            { name: "Jiló", category: "Legumes", unit: "kg" },
+            { name: "Maxixe", category: "Legumes", unit: "kg" },
+            { name: "Mandioca", category: "Legumes", unit: "kg" },
+            { name: "Milho verde", category: "Legumes", unit: "und" },
+            { name: "Nabo", category: "Legumes", unit: "kg" },
+            { name: "Pepino comum", category: "Legumes", unit: "kg" },
+            { name: "Pepino japonês", category: "Legumes", unit: "kg" },
+            { name: "Pimenta ardida", category: "Legumes", unit: "kg" },
+            { name: "Pimentão verde", category: "Legumes", unit: "kg" },
+            { name: "Pimentão amarelo", category: "Legumes", unit: "kg" },
+            { name: "Pimentão vermelho", category: "Legumes", unit: "kg" },
+            { name: "Quiabo", category: "Legumes", unit: "kg" },
+            { name: "Rabanete", category: "Legumes", unit: "kg" },
+            { name: "Repolho roxo", category: "Legumes", unit: "kg" },
+            { name: "Repolho verde", category: "Legumes", unit: "kg" },
+            { name: "Tomate", category: "Legumes", unit: "kg" },
+            { name: "Tomate p/molho", category: "Legumes", unit: "kg" },
+            { name: "Vagem", category: "Legumes", unit: "kg" },
+
+            // LIMPEZA
+            { name: "Detergente", category: "Limpeza", unit: "un" },
+            { name: "Sabão em pó", category: "Limpeza", unit: "kg" },
+            { name: "Desinfetante", category: "Limpeza", unit: "lt" },
+            { name: "Água sanitária", category: "Limpeza", unit: "lt" },
+            { name: "Esponja", category: "Limpeza", unit: "un" },
+            { name: "Papel toalha", category: "Limpeza", unit: "pct" },
+            { name: "Saco de lixo", category: "Limpeza", unit: "pct" },
+
+            // BEBIDAS
+            { name: "Coca-Cola 2L", category: "Bebidas", unit: "2L" },
+            { name: "Coca-Cola Lata 310ml Zero", category: "Bebidas", unit: "310ml" },
+            { name: "Coca-Cola Lata 310ml Açúcar", category: "Bebidas", unit: "310ml" },
+            { name: "Água com gás 500ml", category: "Bebidas", unit: "500ml" },
+            { name: "Água sem gás 500ml", category: "Bebidas", unit: "500ml" }
+        ];
+
+        // Funções para o menu de categorias
+        function showPredefinedByCategory(category, btn) {
+            document.querySelectorAll('.category-nav .category-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderPredefinedItems(category);
+        }
+
+        function renderPredefinedItems(category = 'Cereais / Fardos') {
+            const container = document.getElementById('predefinedItems');
+            if (!container) return;
+            
+            const filtered = predefinedItems.filter(item => item.category === category);
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 10px; color: #666;">
+                    Nenhum item nesta categoria
+                </div>`;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(item =>
+                `<div class="predefined-item" onclick="selectPredefinedItem('${item.name}', '${item.category}', '${item.unit}')">
+                    ${item.name}
+                    <br><small>${item.unit}</small>
+                </div>`
+            ).join('');
+        }
+
+        function selectPredefinedItem(name, category, unit) {
+            document.getElementById('itemName').value = name;
+            document.getElementById('itemCategory').value = category;
+            document.getElementById('itemQuantity').value = `1 ${unit}`;
+            document.getElementById('itemName').focus();
+        }
+
+        // Restante das funções (addItem, toggleItem, etc.) permanecem as mesmas
+        function addItem() {
+            const name = document.getElementById('itemName').value.trim();
+            const quantity = document.getElementById('itemQuantity').value.trim();
+            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+            const category = document.getElementById('itemCategory').value;
+
+            if (!name || !quantity) {
+                showNotification('Nome e quantidade são obrigatórios!', 'error');
+                return;
+            }
+
+            const newItem = {
+                id: Date.now(),
+                name,
+                quantity,
+                price,
+                category,
+                completed: false,
+                addedAt: new Date().toISOString(),
+                alternative: null
+            };
+
+            items.unshift(newItem);
+            saveToLocalStorage();
+            renderItems();
+            updateTotal();
+            clearForm();
+            
+            showNotification('Item adicionado com sucesso!', 'success');
+        }
+
+        function clearForm() {
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemQuantity').value = '';
+            document.getElementById('itemPrice').value = '';
+            document.getElementById('itemCategory').value = '';
+        }
+
+        function toggleItem(id) {
+            const item = items.find(i => i.id === id);
+            if (item) {
+                item.completed = !item.completed;
+                item.completedAt = item.completed ? new Date().toISOString() : null;
+                saveToLocalStorage();
+                renderItems();
+                updateTotal();
+                
+                showNotification(
+                    item.completed ? 'Item marcado como comprado!' : 'Item desmarcado!', 
+                    'success'
+                );
+            }
+        }
+
+        function editItem(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            const newName = prompt('Nome do produto:', item.name);
+            const newQuantity = prompt('Quantidade:', item.quantity);
+            const newPrice = prompt('Preço (deixe vazio se não souber):', item.price || '');
+
+            if (newName && newQuantity) {
+                item.name = newName.trim();
+                item.quantity = newQuantity.trim();
+                item.price = parseFloat(newPrice) || 0;
+                
+                saveToLocalStorage();
+                renderItems();
+                updateTotal();
+                showNotification('Item editado com sucesso!', 'success');
+            }
+        }
+
+        function deleteItem(id) {
+            if (confirm('Tem certeza que deseja excluir este item?')) {
+                items = items.filter(i => i.id !== id);
+                saveToLocalStorage();
+                renderItems();
+                updateTotal();
+                showNotification('Item excluído!', 'success');
+            }
+        }
+
+        function markAsNotFound(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            const alternative = prompt('Produto não encontrado. Digite uma alternativa ou observação:');
+            if (alternative) {
+                item.alternative = alternative.trim();
+                item.notFound = true;
+                saveToLocalStorage();
+                renderItems();
+                showNotification('Alternativa salva!', 'success');
+            }
+        }
+
+        function renderItems() {
+            const container = document.getElementById('itemsList');
+            const filteredItems = items.filter(item => {
+                const matchesSearch = !currentFilter || 
+                    item.name.toLowerCase().includes(currentFilter.toLowerCase()) ||
+                    item.quantity.toLowerCase().includes(currentFilter.toLowerCase());
+                
+                const matchesCategory = !currentCategory || item.category === currentCategory;
+                
+                return matchesSearch && matchesCategory;
+            });
+
+            if (filteredItems.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        <h3>📝 Nenhum item encontrado</h3>
+                        <p>Adicione itens à sua lista de compras</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredItems.map(item => `
+                <div class="item ${item.completed ? 'completed' : ''}">
+                    <div class="item-header">
+                        <input type="checkbox" class="item-checkbox" 
+                               ${item.completed ? 'checked' : ''} 
+                               onchange="toggleItem(${item.id})">
+                        <div class="item-name">${item.name}</div>
+                    </div>
+                    
+                    <div class="item-details">
+                        <span>📦 ${item.quantity}</span>
+                        ${item.category ? `<span>🏷️ ${item.category}</span>` : ''}
+                        ${item.price > 0 ? `<span class="item-price">R$ ${item.price.toFixed(2)}</span>` : ''}
+                    </div>
+                    
+                    ${item.alternative ? `
+                        <div style="background: #fff3cd; padding: 8px; border-radius: 6px; margin: 8px 0; font-size: 14px;">
+                            <strong>🔄 Alternativa:</strong> ${item.alternative}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="item-actions">
+                        <button class="btn btn-small btn-warning" onclick="editItem(${item.id})">✏️ Editar</button>
+                        <button class="btn btn-small" onclick="markAsNotFound(${item.id})">❌ Não encontrei</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteItem(${item.id})">🗑️ Excluir</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateTotal() {
+            const total = items
+                .filter(item => !item.completed && item.price > 0)
+                .reduce((sum, item) => sum + item.price, 0);
+                
+            document.getElementById('totalValue').textContent = `R$ ${total.toFixed(2)}`;
+        }
+
+        function filterItems() {
+            currentFilter = document.getElementById('searchInput').value;
+            renderItems();
+        }
+
+        function filterByCategory(category) {
+            currentCategory = category;
+            
+            // Atualizar botões ativos
+            document.querySelectorAll('.category-filter .category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            renderItems();
+        }
+
+        function saveCurrentList() {
+            if (items.length === 0) {
+                showNotification('Adicione itens antes de salvar a lista!', 'error');
+                return;
+            }
+
+            const listData = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString('pt-BR'),
+                items: [...items],
+                total: items.reduce((sum, item) => sum + (item.price || 0), 0),
+                completedItems: items.filter(i => i.completed).length,
+                totalItems: items.length
+            };
+
+            history.unshift(listData);
+            
+            // Limpar lista atual
+            items = [];
+            
+            saveToLocalStorage();
+            renderItems();
+            renderHistory();
+            updateTotal();
+            
+            showNotification('Lista salva no histórico!', 'success');
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        <h3>📅 Nenhuma lista salva</h3>
+                        <p>As listas salvas aparecerão aqui</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = history.map(list => `
+                <div class="history-item">
+                    <div class="history-header">
+                        <div class="history-date">📅 ${list.date}</div>
+                        <div class="history-total">R$ ${list.total.toFixed(2)}</div>
+                    </div>
+                    <div class="history-items">
+                        ${list.completedItems}/${list.totalItems} itens comprados
+                        <button class="btn btn-small" onclick="viewHistoryDetails(${list.id})" style="margin-left: 10px;">
+                            👁️ Ver detalhes
+                        </button>
+                        <button class="btn btn-small btn-danger" onclick="deleteHistory(${list.id})" style="margin-left: 5px;">
+                            🗑️ Excluir
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function viewHistoryDetails(id) {
+            const list = history.find(h => h.id === id);
+            if (!list) return;
+
+            const details = list.items.map(item => 
+                `${item.completed ? '✅' : '❌'} ${item.name} - ${item.quantity}${item.price > 0 ? ` (R$ ${item.price.toFixed(2)})` : ''}`
+            ).join('\n');
+
+            alert(`Lista do dia ${list.date}\n\n${details}\n\nTotal: R$ ${list.total.toFixed(2)}`);
+        }
+
+        function deleteHistory(id) {
+            if (confirm('Tem certeza que deseja excluir esta lista do histórico?')) {
+                history = history.filter(h => h.id !== id);
+                saveToLocalStorage();
+                renderHistory();
+                showNotification('Lista excluída do histórico!', 'success');
+            }
+        }
+
+        function showTab(tab) {
+            // Remover active de todas as abas
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            
+            // Ativar aba selecionada
+            event.target.classList.add('active');
+            document.getElementById(tab).classList.add('active');
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('restaurantShoppingList', JSON.stringify({
+                items: items,
+                history: history
+            }));
+        }
+
+        function loadFromLocalStorage() {
+            const data = localStorage.getItem('restaurantShoppingList');
+            if (data) {
+                const parsed = JSON.parse(data);
+                items = parsed.items || [];
+                history = parsed.history || [];
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function shareViaWhatsApp() {
+            const incompleteItems = items.filter(item => !item.completed);
+            if (incompleteItems.length === 0) {
+                showNotification('Nenhum item pendente para compartilhar!', 'error');
+                return;
+            }
+
+            const total = incompleteItems.reduce((sum, item) => sum + (item.price || 0), 0);
+            let message = `🛒 *Lista de Compras - Restaurante*\n📅 ${new Date().toLocaleDateString('pt-BR')}\n\n`;
+            
+            incompleteItems.forEach((item, index) => {
+                message += `${index + 1}. ${item.name} - ${item.quantity}`;
+                if (item.price > 0) message += ` (R$ ${item.price.toFixed(2)})`;
+                if (item.category) message += ` [${item.category}]`;
+                message += '\n';
+            });
+            
+            if (total > 0) {
+                message += `\n💰 *Total Estimado: R$ ${total.toFixed(2)}*`;
+            }
+            
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+        }
+
+        function addShareButton() {
+            const totalSection = document.querySelector('.total-section');
+            const shareButton = document.createElement('button');
+            shareButton.className = 'btn btn-small';
+            shareButton.style.marginTop = '10px';
+            shareButton.style.background = '#25D366';
+            shareButton.innerHTML = '📱 Compartilhar no WhatsApp';
+            shareButton.onclick = shareViaWhatsApp;
+            totalSection.appendChild(shareButton);
+        }
+
+        function syncToFirebase() {
+            if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+                const database = firebase.database();
+                const listRef = database.ref('shoppingList');
+                
+                listRef.set({
+                    items: items,
+                    lastUpdated: new Date().toISOString(),
+                    updatedBy: 'user'
+                }).then(() => {
+                    console.log('Dados sincronizados com Firebase');
+                }).catch((error) => {
+                    console.error('Erro na sincronização:', error);
+                    showNotification('Erro na sincronização. Dados salvos localmente.', 'error');
+                });
+            }
+        }
+
+        function listenToFirebaseChanges() {
+            if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+                const database = firebase.database();
+                const listRef = database.ref('shoppingList');
+                
+                listRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data && data.items) {
+                        items = data.items;
+                        renderItems();
+                        updateTotal();
+                        showNotification('Lista atualizada por outro usuário!', 'info');
+                    }
+                });
+            }
+        }
+
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(() => console.log('Service Worker registrado'))
+                    .catch(() => console.log('Erro ao registrar Service Worker'));
+            }
+        }
+
+        function addInstallPrompt() {
+            let deferredPrompt;
+            
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                
+                const installButton = document.createElement('button');
+                installButton.className = 'btn btn-small';
+                installButton.innerHTML = '📱 Instalar App';
+                installButton.style.position = 'fixed';
+                installButton.style.bottom = '20px';
+                installButton.style.right = '20px';
+                installButton.style.zIndex = '1000';
+                
+                installButton.addEventListener('click', () => {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            showNotification('App instalado com sucesso!', 'success');
+                        }
+                        deferredPrompt = null;
+                        document.body.removeChild(installButton);
+                    });
+                });
+                
+                document.body.appendChild(installButton);
+            });
+        }
+
+        function exportData() {
+            const data = {
+                items: items,
+                history: history,
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `lista-compras-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Backup exportado com sucesso!', 'success');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        
+                        if (confirm('Importar dados irá substituir a lista atual. Continuar?')) {
+                            items = data.items || [];
+                            history = data.history || [];
+                            
+                            saveToLocalStorage();
+                            renderItems();
+                            renderHistory();
+                            updateTotal();
+                            
+                            showNotification('Dados importados com sucesso!', 'success');
+                        }
+                    } catch (error) {
+                        showNotification('Erro ao importar arquivo. Verifique o formato.', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        function showAdvancedOptions() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5); z-index: 2000; display: flex;
+                align-items: center; justify-content: center; padding: 20px;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 12px; padding: 30px; max-width: 400px; width: 100%;">
+                    <h3 style="margin-bottom: 20px;">⚙️ Configurações Avançadas</h3>
+                    
+                    <button class="btn" onclick="exportData()" style="margin-bottom: 10px;">
+                        💾 Exportar Backup
+                    </button>
+                    
+                    <button class="btn" onclick="importData()" style="margin-bottom: 10px;">
+                        📂 Importar Backup
+                    </button>
+                    
+                    <button class="btn btn-warning" onclick="clearAllData()" style="margin-bottom: 10px;">
+                        🗑️ Limpar Todos os Dados
+                    </button>
+                    
+                    <button class="btn" onclick="shareViaWhatsApp()" style="margin-bottom: 20px;">
+                        📱 Compartilhar no WhatsApp
+                    </button>
+                    
+                    <button class="btn btn-danger" onclick="closeModal()">
+                        ❌ Fechar
+                    </button>
+                </div>
+            `;
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) closeModal();
+            };
+            
+            window.closeModal = () => document.body.removeChild(modal);
+            document.body.appendChild(modal);
+        }
+
+        function clearAllData() {
+            if (confirm('ATENÇÃO: Isso irá apagar todos os dados (lista atual + histórico). Continuar?')) {
+                items = [];
+                history = [];
+                localStorage.removeItem('restaurantShoppingList');
+                
+                renderItems();
+                renderHistory();
+                updateTotal();
+                
+                showNotification('Todos os dados foram limpos!', 'success');
+                closeModal();
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            const header = document.querySelector('.header');
+            const settingsButton = document.createElement('button');
+            settingsButton.style.cssText = `
+                position: absolute; top: 15px; right: 15px;
+                background: rgba(255,255,255,0.2); border: none;
+                color: white; padding: 8px; border-radius: 50%;
+                cursor: pointer; font-size: 16px;
+            `;
+            settingsButton.innerHTML = '⚙️';
+            settingsButton.onclick = showAdvancedOptions;
+            header.appendChild(settingsButton);
+            
+            addShareButton();
+            addInstallPrompt();
+            registerServiceWorker();
+            
+            loadFromLocalStorage();
+            renderItems();
+            renderHistory();
+            updateTotal();
+            
+            // Carregar itens pré-definidos iniciais
+            renderPredefinedItems('Cereais / Fardos');
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                addItem();
+            }
+            
+            if (e.key === 'Escape') {
+                clearForm();
+            }
+            
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveCurrentList();
+            }
+        });
+
+        function enableDragAndDrop() {
+            let draggedElement = null;
+            
+            document.addEventListener('dragstart', function(e) {
+                if (e.target.classList.contains('item')) {
+                    draggedElement = e.target;
+                    e.target.style.opacity = '0.5';
+                }
+            });
+            
+            document.addEventListener('dragend', function(e) {
+                if (e.target.classList.contains('item')) {
+                    e.target.style.opacity = '';
+                }
+            });
+            
+            document.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            
+            document.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (draggedElement && e.target.classList.contains('item')) {
+                    const container = document.getElementById('itemsList');
+                    const draggedIndex = Array.from(container.children).indexOf(draggedElement);
+                    const targetIndex = Array.from(container.children).indexOf(e.target);
+                    
+                    const draggedItem = items.splice(draggedIndex, 1)[0];
+                    items.splice(targetIndex, 0, draggedItem);
+                    
+                    saveToLocalStorage();
+                    renderItems();
+                }
+            });
+        }
+
+        setTimeout(() => {
+            enableDragAndDrop();
+        }, 1000);
+
+        window.addEventListener('online', () => {
+            document.getElementById('offlineIndicator').style.display = 'none';
+            showNotification('Conectado! Sincronizando dados...', 'success');
+        });
+        
+        window.addEventListener('offline', () => {
+            document.getElementById('offlineIndicator').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
