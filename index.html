@@ -72,6 +72,41 @@
             color: var(--verde-escuro);
         }
 
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--verde-escuro);
+            text-align: center;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
         .tab.active {
             background: var(--branco);
             border-bottom-color: var(--verde-medio);
@@ -125,6 +160,7 @@
             transition: border-color 0.3s;
             background: var(--branco);
             color: var(--verde-escuro);
+            box-sizing: border-box;
         }
 
         input:focus, select:focus, textarea:focus {
@@ -539,6 +575,7 @@
         let history = [];
         let currentFilter = '';
         let currentCategory = '';
+        let selectedPredefinedItem = null;
 
         // Itens pré-definidos baseados na sua lista
         const predefinedItems = [
@@ -711,6 +748,7 @@
                 return;
             }
             
+            // Atualização com nova função selectPredefinedItem
             container.innerHTML = filtered.map(item =>
                 `<div class="predefined-item" onclick="selectPredefinedItem('${item.name}', '${item.category}', '${item.unit}')">
                     ${item.name}
@@ -720,13 +758,91 @@
         }
 
         function selectPredefinedItem(name, category, unit) {
-            document.getElementById('itemName').value = name;
-            document.getElementById('itemCategory').value = category;
-            document.getElementById('itemQuantity').value = `1 ${unit}`;
-            document.getElementById('itemName').focus();
+            selectedPredefinedItem = { name, category, unit };
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-title">Adicionar ${name}</div>
+                    
+                    <div class="form-group">
+                        <label>Quantidade *</label>
+                        <input type="text" id="modalQuantity" placeholder="Ex: 2 ${unit}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Valor (R$)</label>
+                        <input type="number" id="modalPrice" placeholder="0,00" step="0.01" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Observações (opcional)</label>
+                        <input type="text" id="modalNotes" placeholder="Alguma observação?">
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button class="btn btn-danger" onclick="document.body.removeChild(this.parentElement.parentElement.parentElement)">
+                            Cancelar
+                        </button>
+                        <button class="btn btn-success" onclick="addPredefinedItem()">
+                            Adicionar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            document.getElementById('modalQuantity').focus();
+            
+            // Permitir fechar com ESC
+            const closeModal = (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(modal);
+                    document.removeEventListener('keydown', closeModal);
+                }
+            };
+            document.addEventListener('keydown', closeModal);
         }
 
-        // Restante das funções (addItem, toggleItem, etc.) permanecem as mesmas
+        function addPredefinedItem() {
+            if (!selectedPredefinedItem) return;
+            
+            const quantity = document.getElementById('modalQuantity').value.trim();
+            const price = parseFloat(document.getElementById('modalPrice').value) || 0;
+            const notes = document.getElementById('modalNotes').value.trim();
+            
+            if (!quantity) {
+                showNotification('Quantidade é obrigatória!', 'error');
+                return;
+            }
+            
+            const nameWithNotes = selectedPredefinedItem.name + (notes ? ` (${notes})` : '');
+            
+            const newItem = {
+                id: Date.now(),
+                name: nameWithNotes,
+                quantity,
+                price,
+                category: selectedPredefinedItem.category,
+                completed: false,
+                addedAt: new Date().toISOString(),
+                alternative: null
+            };
+            
+            items.unshift(newItem);
+            saveToLocalStorage();
+            renderItems();
+            updateTotal();
+            
+            // Fechar modal
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) document.body.removeChild(modal);
+            
+            showNotification('Item adicionado com sucesso!', 'success');
+        }
+
+        // Restante das funções (addItem, toggleItem, etc.)
         function addItem() {
             const name = document.getElementById('itemName').value.trim();
             const quantity = document.getElementById('itemQuantity').value.trim();
@@ -1055,79 +1171,6 @@
             totalSection.appendChild(shareButton);
         }
 
-        function syncToFirebase() {
-            if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
-                const database = firebase.database();
-                const listRef = database.ref('shoppingList');
-                
-                listRef.set({
-                    items: items,
-                    lastUpdated: new Date().toISOString(),
-                    updatedBy: 'user'
-                }).then(() => {
-                    console.log('Dados sincronizados com Firebase');
-                }).catch((error) => {
-                    console.error('Erro na sincronização:', error);
-                    showNotification('Erro na sincronização. Dados salvos localmente.', 'error');
-                });
-            }
-        }
-
-        function listenToFirebaseChanges() {
-            if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
-                const database = firebase.database();
-                const listRef = database.ref('shoppingList');
-                
-                listRef.on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data && data.items) {
-                        items = data.items;
-                        renderItems();
-                        updateTotal();
-                        showNotification('Lista atualizada por outro usuário!', 'info');
-                    }
-                });
-            }
-        }
-
-        function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(() => console.log('Service Worker registrado'))
-                    .catch(() => console.log('Erro ao registrar Service Worker'));
-            }
-        }
-
-        function addInstallPrompt() {
-            let deferredPrompt;
-            
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                
-                const installButton = document.createElement('button');
-                installButton.className = 'btn btn-small';
-                installButton.innerHTML = '📱 Instalar App';
-                installButton.style.position = 'fixed';
-                installButton.style.bottom = '20px';
-                installButton.style.right = '20px';
-                installButton.style.zIndex = '1000';
-                
-                installButton.addEventListener('click', () => {
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            showNotification('App instalado com sucesso!', 'success');
-                        }
-                        deferredPrompt = null;
-                        document.body.removeChild(installButton);
-                    });
-                });
-                
-                document.body.appendChild(installButton);
-            });
-        }
-
         function exportData() {
             const data = {
                 items: items,
@@ -1255,8 +1298,6 @@
             header.appendChild(settingsButton);
             
             addShareButton();
-            addInstallPrompt();
-            registerServiceWorker();
             
             loadFromLocalStorage();
             renderItems();
@@ -1267,6 +1308,7 @@
             renderPredefinedItems('Cereais / Fardos');
         });
 
+        // Atalhos do teclado
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'Enter') {
                 addItem();
@@ -1282,46 +1324,7 @@
             }
         });
 
-        function enableDragAndDrop() {
-            let draggedElement = null;
-            
-            document.addEventListener('dragstart', function(e) {
-                if (e.target.classList.contains('item')) {
-                    draggedElement = e.target;
-                    e.target.style.opacity = '0.5';
-                }
-            });
-            
-            document.addEventListener('dragend', function(e) {
-                if (e.target.classList.contains('item')) {
-                    e.target.style.opacity = '';
-                }
-            });
-            
-            document.addEventListener('dragover', function(e) {
-                e.preventDefault();
-            });
-            
-            document.addEventListener('drop', function(e) {
-                e.preventDefault();
-                if (draggedElement && e.target.classList.contains('item')) {
-                    const container = document.getElementById('itemsList');
-                    const draggedIndex = Array.from(container.children).indexOf(draggedElement);
-                    const targetIndex = Array.from(container.children).indexOf(e.target);
-                    
-                    const draggedItem = items.splice(draggedIndex, 1)[0];
-                    items.splice(targetIndex, 0, draggedItem);
-                    
-                    saveToLocalStorage();
-                    renderItems();
-                }
-            });
-        }
-
-        setTimeout(() => {
-            enableDragAndDrop();
-        }, 1000);
-
+        // Indicadores de conexão
         window.addEventListener('online', () => {
             document.getElementById('offlineIndicator').style.display = 'none';
             showNotification('Conectado! Sincronizando dados...', 'success');
@@ -1331,5 +1334,5 @@
             document.getElementById('offlineIndicator').style.display = 'block';
         });
     </script>
-</body>
+</body>  
 </html>
