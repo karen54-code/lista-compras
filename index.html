@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Compras - Restaurante</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+    <title>Sistema de Gestão - Restaurante</title>
     <style>
         :root {
             --verde-escuro: #2b4d2b;
@@ -14,6 +12,18 @@
             --bege: #f6f3e7;
             --branco: #fff;
             --cinza: #e9ecef;
+            --azul: #0066cc;
+            --vermelho: #dc3545;
+            --amarelo: #ffc107;
+            --whatsapp: #25D366;
+            --roxo: #6f42c1;
+            --laranja: #fd7e14;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
@@ -53,15 +63,50 @@
             opacity: 0.9;
         }
 
+        .login-screen {
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .sector-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .sector-btn {
+            background: linear-gradient(135deg, var(--verde-medio), var(--verde-escuro));
+            color: var(--bege);
+            border: none;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .sector-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(78,125,78,0.15);
+        }
+
+        .sector-btn.geral {
+            background: linear-gradient(135deg, var(--laranja), #e0570c);
+            grid-column: span 2;
+        }
+
         .tabs {
             display: flex;
             background: var(--bege);
             border-bottom: 1px solid var(--cinza);
+            overflow-x: auto;
         }
 
         .tab {
             flex: 1;
-            padding: 15px;
+            padding: 15px 10px;
             text-align: center;
             background: none;
             border: none;
@@ -70,41 +115,8 @@
             transition: all 0.3s;
             border-bottom: 3px solid transparent;
             color: var(--verde-escuro);
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        }
-
-        .modal-title {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: var(--verde-escuro);
-            text-align: center;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            font-size: 14px;
+            min-width: 100px;
         }
 
         .tab.active {
@@ -123,50 +135,62 @@
             display: block;
         }
 
-        .add-form {
-            background: var(--bege);
-            padding: 20px;
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
             border-radius: 12px;
-            margin-bottom: 20px;
-            border: 2px solid var(--cinza);
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            position: relative;
         }
 
-        .form-row {
-            display: flex;
-            gap: 10px;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-        }
-
-        label {
+        .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 500;
             color: var(--verde-escuro);
         }
 
-        input, select, textarea {
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid var(--cinza);
             border-radius: 8px;
             font-size: 16px;
             transition: border-color 0.3s;
-            background: var(--branco);
-            color: var(--verde-escuro);
-            box-sizing: border-box;
         }
 
-        input:focus, select:focus, textarea:focus {
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: var(--verde-medio);
-            box-shadow: 0 0 0 3px rgba(78,125,78,0.08);
         }
 
         .btn {
@@ -180,27 +204,45 @@
             font-weight: 500;
             width: 100%;
             transition: all 0.3s;
+            margin-bottom: 10px;
         }
 
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(78,125,78,0.15);
-            background: linear-gradient(135deg, var(--verde-escuro), var(--verde-medio));
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #3e7d3e, #6bbf59);
-            color: var(--branco);
+            background: linear-gradient(135deg, #28a745, #20c997);
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #b94e4e, #e74c3c);
-            color: var(--branco);
+            background: linear-gradient(135deg, var(--vermelho), #c82333);
         }
 
         .btn-warning {
-            background: linear-gradient(135deg, #f3e29c, #e6c94d);
+            background: linear-gradient(135deg, var(--amarelo), #e0a800);
             color: var(--verde-escuro);
+        }
+
+        .btn-whatsapp {
+            background: linear-gradient(135deg, var(--whatsapp), #128C7E);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, var(--azul), #004d99);
+            color: white;
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, var(--roxo), #5a32a3);
+            color: white;
+        }
+
+        .btn-orange {
+            background: linear-gradient(135deg, var(--laranja), #e0570c);
+            color: white;
         }
 
         .btn-small {
@@ -210,76 +252,20 @@
             margin: 2px;
         }
 
-        .search-bar {
-            margin-bottom: 20px;
-        }
-
-        .search-bar input {
-            background: var(--branco);
-            border: 2px solid var(--cinza);
-        }
-
-        .category-filter {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-        }
-
-        .category-btn {
-            background: var(--bege);
-            border: 2px solid var(--verde-medio);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.3s;
-            font-size: 14px;
-            color: var(--verde-escuro);
-        }
-
-        .category-btn.active {
-            background: var(--verde-medio);
-            color: var(--bege);
-            border-color: var(--verde-medio);
-        }
-
-        .items-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .item {
+        .item-card {
             background: var(--branco);
             border: 2px solid var(--cinza);
             border-radius: 12px;
             padding: 15px;
+            margin-bottom: 15px;
             transition: all 0.3s;
-            position: relative;
-        }
-
-        .item.completed {
-            opacity: 0.7;
-            background: var(--bege);
-        }
-
-        .item.completed .item-name {
-            text-decoration: line-through;
         }
 
         .item-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 10px;
-        }
-
-        .item-checkbox {
-            width: 20px;
-            height: 20px;
-            margin-right: 12px;
-            cursor: pointer;
         }
 
         .item-name {
@@ -297,290 +283,635 @@
             margin-bottom: 10px;
         }
 
-        .item-price {
-            font-weight: 600;
-            color: #3e7d3e;
-            font-size: 16px;
-        }
-
         .item-actions {
             display: flex;
             gap: 8px;
             justify-content: flex-end;
         }
 
-        .total-section {
-            background: linear-gradient(135deg, var(--verde-medio), var(--verde-escuro));
-            color: var(--bege);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .total-value {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .history-item {
-            background: var(--branco);
-            border: 2px solid var(--cinza);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-        }
-
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .history-date {
-            font-weight: 600;
-            color: var(--verde-escuro);
-        }
-
-        .history-total {
-            font-weight: 600;
-            color: #3e7d3e;
-        }
-
-        .history-items {
-            font-size: 14px;
-            color: var(--verde-medio);
-        }
-
         .notification {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #3e7d3e;
+            background: var(--verde-escuro);
             color: var(--bege);
             padding: 15px 20px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(43,77,43,0.15);
             transform: translateX(100%);
             transition: transform 0.3s;
-            z-index: 1000;
+            z-index: 1100;
         }
 
         .notification.show {
             transform: translateX(0);
         }
 
-        .offline-indicator {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #b94e4e;
-            color: var(--bege);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .alternative-form {
-            background: #f6f3e7;
-            border: 2px solid #e6c94d;
-            border-radius: 8px;
+        .sector-info {
+            background: var(--verde-claro);
             padding: 15px;
-            margin-top: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
         }
 
-        .predefined-items {
+        .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
             margin-bottom: 20px;
         }
 
-        .predefined-item {
+        .stat-card {
             background: var(--branco);
-            border: 2px solid var(--verde-medio);
-            padding: 10px;
+            padding: 15px;
             border-radius: 8px;
-            cursor: pointer;
             text-align: center;
-            font-size: 12px;
-            transition: all 0.3s;
+            border: 2px solid var(--cinza);
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
             color: var(--verde-escuro);
         }
 
-        .predefined-item:hover {
-            border-color: var(--verde-escuro);
-            background: var(--verde-claro);
+        .stat-label {
+            font-size: 12px;
+            color: var(--verde-medio);
+            margin-top: 5px;
         }
 
-        @media (max-width: 480px) {
-            .container {
-                max-width: 100%;
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 0;
-            }
-            
-            .category-filter {
-                justify-content: flex-start;
-            }
+        .inventory-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--branco);
+            border: 2px solid var(--cinza);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .inventory-item.low-stock {
+            border-color: var(--amarelo);
+            background: #fff3cd;
+        }
+
+        .inventory-item.out-of-stock {
+            border-color: var(--vermelho);
+            background: #f8d7da;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .quantity-display {
+            min-width: 50px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-item-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .history-item-status {
+            font-weight: bold;
+        }
+
+        .history-item-notes {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .suggestions-container {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--cinza);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--cinza);
+        }
+
+        .suggestion-item:hover {
+            background-color: var(--verde-claro);
+        }
+
+        .suggestion-category {
+            background-color: var(--bege);
+            padding: 5px 10px;
+            font-weight: bold;
+            color: var(--verde-escuro);
+        }
+
+        .purchase-status {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .status-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .status-found {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-not-found {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-partial {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .price-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+
+        .recipe-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .recipe-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--verde-escuro);
+        }
+
+        .recipe-ingredients {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .recipe-instructions {
+            font-size: 14px;
+            color: #444;
+        }
+
+        .shopping-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--branco);
+            border: 2px solid var(--cinza);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .shopping-item-info {
+            flex: 1;
+        }
+
+        .shopping-item-name {
+            font-weight: bold;
+        }
+
+        .shopping-item-quantity {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .shopping-item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .filter-btn {
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 2px solid var(--cinza);
+            background: var(--branco);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .filter-btn.active {
+            background: var(--verde-medio);
+            color: white;
+            border-color: var(--verde-medio);
+        }
+
+        .quantity-unit {
+            display: flex;
+            gap: 10px;
+        }
+
+        .quantity-input {
+            flex: 2;
+        }
+
+        .unit-select {
+            flex: 1;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🛒 Lista de Compras</h1>
-            <div class="subtitle">Restaurante - Sincronizado</div>
+        <!-- Tela de Login -->
+        <div id="loginScreen" class="login-screen">
+            <div class="header">
+                <h1>Sistema de Gestão</h1>
+                <div class="subtitle">Restaurante</div>
+            </div>
+            
+            <h2 style="margin-bottom: 30px;">Selecione seu Setor</h2>
+            
+            <div class="sector-buttons">
+                <button class="sector-btn" onclick="showPasswordModal('cozinha')">
+                    🍳 Cozinha
+                </button>
+                <button class="sector-btn" onclick="showPasswordModal('lavanderia')">
+                    👕 Lavanderia
+                </button>
+                <button class="sector-btn" onclick="showPasswordModal('limpeza')">
+                    🧹 Limpeza
+                </button>
+                <button class="sector-btn" onclick="showPasswordModal('bar')">
+                    🍺 Bar
+                </button>
+                <button class="sector-btn" onclick="showPasswordModal('escritorio')">
+                    💼 Escritório
+                </button>
+                <button class="sector-btn" onclick="showPasswordModal('area_externa')">
+                    🌳 Área Externa
+                </button>
+                <button class="sector-btn" onclick="showPasswordModal('compras')">
+                    🛒 Compras
+                </button>
+                <button class="sector-btn geral" onclick="showPasswordModal('geral')">
+                    🌟 Lista Geral (Administrador)
+                </button>
+            </div>
         </div>
 
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('current')">Lista Atual</button>
-            <button class="tab" onclick="showTab('history')">Histórico</button>
-        </div>
+        <!-- Sistema Principal -->
+        <div id="mainSystem" style="display: none;">
+            <div class="header">
+                <h1>Sistema de Gestão</h1>
+                <div class="subtitle" id="currentSector">Setor</div>
+                <button onclick="logout()" style="position: absolute; right: 15px; top: 15px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px; border-radius: 50%; cursor: pointer;">
+                    ↩️
+                </button>
+            </div>
 
-        <!-- MENU DE NAVEGAÇÃO POR CATEGORIA (compacto) -->
-        <div class="category-nav" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0;">
-            <button class="category-btn active" onclick="showPredefinedByCategory('Cereais / Fardos', this)">Cereais/Fardos</button>
-            <button class="category-btn" onclick="showPredefinedByCategory('Proteínas', this)">Proteínas</button>
-            <button class="category-btn" onclick="showPredefinedByCategory('Laticínios', this)">Laticínios</button>
-            <button class="category-btn" onclick="showPredefinedByCategory('Frutas', this)">Frutas</button>
-            <button class="category-btn" onclick="showPredefinedByCategory('Verduras', this)">Verduras</button>
-            <button class="category-btn" onclick="showPredefinedByCategory('Legumes', this)">Legumes</button>
-            <button class="category-btn" onclick="showPredefinedByCategory('Limpeza', this)">Limpeza</button>
-            <button class="category-btn" onclick="showPredefinedByCategory('Bebidas', this)">Bebidas</button>
-        </div>
+            <div class="sector-info" id="sectorInfo">
+                <strong id="sectorName">Setor</strong>
+                <div id="sectorStats"></div>
+            </div>
 
-        <!-- Aba Lista Atual -->
-        <div id="current" class="tab-content active">
-            <!-- Formulário de Adicionar Item -->
-            <div class="add-form">
-                <h3 style="margin-bottom: 15px;">➕ Adicionar Item</h3>
-                
-                <!-- Itens Pré-definidos -->
-                <div class="predefined-items" id="predefinedItems">
-                    <!-- Será populado pelo JavaScript -->
-                </div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('lista')">Lista</button>
+                <button class="tab" onclick="switchTab('inventario')">Inventário</button>
+                <button class="tab" onclick="switchTab('historico')">Histórico</button>
+                <button class="tab" onclick="switchTab('compras')" id="comprasTab" style="display: none;">🛒 Compras</button>
+                <button class="tab" onclick="switchTab('receitas')" id="receitasTab" style="display: none;">🍳 Receitas</button>
+            </div>
 
-                <div class="form-group">
-                    <label>Nome do Produto *</label>
-                    <input type="text" id="itemName" placeholder="Ex: Arroz 5kg" required>
-                </div>
+            <!-- Aba Lista -->
+            <div id="lista" class="tab-content active">
+                <button class="btn" onclick="showAddItemModal()" style="margin-bottom: 20px;">
+                    ➕ Adicionar Item
+                </button>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Quantidade *</label>
-                        <input type="text" id="itemQuantity" placeholder="Ex: 2 kg" required>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalItems">0</div>
+                        <div class="stat-label">Total</div>
                     </div>
-                    <div class="form-group">
-                        <label>Valor (R$)</label>
-                        <input type="number" id="itemPrice" placeholder="0,00" step="0.01" min="0">
+                    <div class="stat-card">
+                        <div class="stat-number" id="pendingItems">0</div>
+                        <div class="stat-label">Pendentes</div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Categoria</label>
-                    <select id="itemCategory">
-                        <option value="">Selecione...</option>
-                        <option value="Cereais / Fardos">Cereais / Fardos</option>
-                        <option value="Proteínas">Proteínas</option>
-                        <option value="Laticínios">Laticínios</option>
-                        <option value="Frutas">Frutas</option>
-                        <option value="Verduras">Verduras</option>
-                        <option value="Legumes">Legumes</option>
-                        <option value="Limpeza">Limpeza</option>
-                        <option value="Bebidas">Bebidas</option>
+                <div id="itemsList"></div>
+
+                <button class="btn btn-success" onclick="finalizeList()" style="margin-top: 20px;">
+                    ✅ Finalizar Lista
+                </button>
+            </div>
+
+            <!-- Aba Inventário -->
+            <div id="inventario" class="tab-content">
+                <button class="btn" onclick="showAddInventoryModal()" style="margin-bottom: 20px;">
+                    📦 Adicionar ao Inventário
+                </button>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalInventory">0</div>
+                        <div class="stat-label">Itens</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="lowStockItems">0</div>
+                        <div class="stat-label">Estoque Baixo</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="outOfStockItems">0</div>
+                        <div class="stat-label">Sem Estoque</div>
+                    </div>
+                </div>
+
+                <div id="inventoryList"></div>
+            </div>
+
+            <!-- Aba Histórico -->
+            <div id="historico" class="tab-content">
+                <div id="historyList"></div>
+            </div>
+
+            <!-- Aba Compras -->
+            <div id="compras" class="tab-content">
+                <div class="sector-info">
+                    <h3>Lista de Compras Autorizada</h3>
+                    <p>Itens pendentes para compra hoje</p>
+                </div>
+
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterShoppingList('todos')">Todos</button>
+                    <button class="filter-btn" onclick="filterShoppingList('cozinha')">Cozinha</button>
+                    <button class="filter-btn" onclick="filterShoppingList('bar')">Bar</button>
+                    <button class="filter-btn" onclick="filterShoppingList('limpeza')">Limpeza</button>
+                </div>
+
+                <button class="btn btn-info" onclick="mergeShoppingLists()" style="margin-bottom: 15px;">
+                    🔄 Mesclar Listas do Dia
+                </button>
+
+                <div id="shoppingList"></div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-success" onclick="finalizeShopping()">
+                        ✅ Finalizar Compra
+                    </button>
+                    <button class="btn btn-whatsapp" onclick="shareShoppingList()">
+                        📤 Enviar por WhatsApp
+                    </button>
+                </div>
+            </div>
+
+            <!-- Aba Receitas -->
+            <div id="receitas" class="tab-content">
+                <div class="sector-info">
+                    <h3>🍳 Sugestões de Receitas</h3>
+                    <p>Receitas baseadas nos itens disponíveis</p>
+                </div>
+
+                <button class="btn btn-purple" onclick="generateRecipes()" style="margin-bottom: 20px;">
+                    🧠 Gerar Sugestões de Receitas
+                </button>
+
+                <div id="recipesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Senha -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">Digite a senha do setor</h3>
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" id="passwordInput" placeholder="Digite a senha">
+            </div>
+            <button class="btn" onclick="authenticate()">Entrar</button>
+            <button class="btn btn-danger" onclick="closeModal('passwordModal')">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Item -->
+    <div id="addItemModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">Adicionar Item</h3>
+            <div class="form-group">
+                <label>Nome do Item:</label>
+                <input type="text" id="itemName" placeholder="Ex: Arroz" oninput="showSuggestions(this.value, 'item')">
+                <div id="itemSuggestions" class="suggestions-container"></div>
+            </div>
+            <div class="form-group">
+                <label>Quantidade e Unidade:</label>
+                <div class="quantity-unit">
+                    <input type="number" id="itemQuantity" placeholder="Quantidade" class="quantity-input" min="1" step="0.1">
+                    <select id="itemUnit" class="unit-select">
+                        <option value="un">Unidade</option>
+                        <option value="kg">Quilograma (kg)</option>
+                        <option value="g">Grama (g)</option>
+                        <option value="l">Litro (l)</option>
+                        <option value="ml">Mililitro (ml)</option>
+                        <option value="pct">Pacote</option>
+                        <option value="cx">Caixa</option>
+                        <option value="dz">Dúzia</option>
                     </select>
                 </div>
-
-                <button class="btn" onclick="addItem()">Adicionar Item</button>
             </div>
-
-            <!-- Barra de Pesquisa -->
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="🔍 Pesquisar item..." onkeyup="filterItems()">
+            <div class="form-group">
+                <label>Prioridade:</label>
+                <select id="itemPriority">
+                    <option value="normal">Normal</option>
+                    <option value="alta">Alta</option>
+                    <option value="urgente">Urgente</option>
+                </select>
             </div>
-
-            <!-- Filtro por Categoria -->
-            <div class="category-filter">
-                <button class="category-btn active" onclick="filterByCategory('')">Todas</button>
-                <button class="category-btn" onclick="filterByCategory('Cereais / Fardos')">Cereais/Fardos</button>
-                <button class="category-btn" onclick="filterByCategory('Proteínas')">Proteínas</button>
-                <button class="category-btn" onclick="filterByCategory('Laticínios')">Laticínios</button>
-                <button class="category-btn" onclick="filterByCategory('Frutas')">Frutas</button>
-                <button class="category-btn" onclick="filterByCategory('Verduras')">Verduras</button>
-                <button class="category-btn" onclick="filterByCategory('Legumes')">Legumes</button>
-                <button class="category-btn" onclick="filterByCategory('Limpeza')">Limpeza</button>
-                <button class="category-btn" onclick="filterByCategory('Bebidas')">Bebidas</button>
+            <div class="form-group">
+                <label>Observações:</label>
+                <textarea id="itemNotes" placeholder="Observações adicionais"></textarea>
             </div>
-
-            <!-- Total -->
-            <div class="total-section">
-                <div class="total-value" id="totalValue">R$ 0,00</div>
-                <div>Total estimado da lista</div>
-            </div>
-
-            <!-- Lista de Itens -->
-            <div class="items-list" id="itemsList">
-                <!-- Itens serão adicionados aqui pelo JavaScript -->
-            </div>
-
-            <!-- Botão Salvar Lista -->
-            <div style="margin-top: 30px;">
-                <button class="btn btn-success" onclick="saveCurrentList()">💾 Salvar Lista do Dia</button>
-            </div>
+            <button class="btn btn-success" onclick="addItem()">Adicionar</button>
+            <button class="btn btn-danger" onclick="closeModal('addItemModal')">Cancelar</button>
         </div>
+    </div>
 
-        <!-- Aba Histórico -->
-        <div id="history" class="tab-content">
-            <h3 style="margin-bottom: 20px;">📋 Histórico de Listas</h3>
-            <div id="historyList">
-                <!-- Histórico será carregado aqui -->
+    <!-- Modal Adicionar Inventário -->
+    <div id="addInventoryModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">Adicionar ao Inventário</h3>
+            <div class="form-group">
+                <label>Nome do Item:</label>
+                <input type="text" id="inventoryItemName" placeholder="Ex: Detergente" oninput="showSuggestions(this.value, 'inventory')">
+                <div id="inventorySuggestions" class="suggestions-container"></div>
+            </div>
+            <div class="form-group">
+                <label>Quantidade Atual:</label>
+                <input type="number" id="inventoryQuantity" placeholder="0" min="0">
+            </div>
+            <div class="form-group">
+                <label>Quantidade Mínima:</label>
+                <input type="number" id="inventoryMinQuantity" placeholder="5" min="0">
+            </div>
+            <div class="form-group">
+                <label>Unidade:</label>
+                <input type="text" id="inventoryUnit" placeholder="Ex: unidades, kg, litros">
+            </div>
+            <button class="btn btn-success" onclick="addInventoryItem()">Adicionar</button>
+            <button class="btn btn-danger" onclick="closeModal('addInventoryModal')">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Histórico -->
+    <div id="historyDetailsModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3 id="historyDetailsTitle" style="margin-bottom: 20px;">Detalhes da Lista</h3>
+            <div id="historyDetailsContent"></div>
+            <div class="modal-actions">
+                <button class="btn btn-whatsapp" onclick="shareToWhatsApp()">
+                    📤 Compartilhar no WhatsApp
+                </button>
+                <button class="btn btn-danger" onclick="closeModal('historyDetailsModal')">Fechar</button>
             </div>
         </div>
     </div>
 
-    <!-- Indicador Offline -->
-    <div class="offline-indicator" id="offlineIndicator">
-        📶 Modo Offline - Dados salvos localmente
+    <!-- Modal de Status de Compra -->
+    <div id="purchaseStatusModal" class="modal">
+        <div class="modal-content">
+            <h3 id="purchaseItemTitle" style="margin-bottom: 20px;">Status de Compra</h3>
+            <input type="hidden" id="purchaseItemId">
+            
+            <div class="purchase-status">
+                <button class="status-btn status-found" onclick="setPurchaseStatus('encontrado')">✅ Encontrado</button>
+                <button class="status-btn status-not-found" onclick="setPurchaseStatus('nao_encontrado')">❌ Não Encontrado</button>
+                <button class="status-btn status-partial" onclick="setPurchaseStatus('parcial')">🔄 Quantidade Diferente</button>
+            </div>
+            
+            <div id="quantitySection" style="display: none; margin-top: 15px;">
+                <div class="form-group">
+                    <label>Quantidade Comprada:</label>
+                    <div class="quantity-unit">
+                        <input type="number" id="purchasedQuantity" placeholder="Quantidade" class="quantity-input" min="0" step="0.1">
+                        <select id="purchasedUnit" class="unit-select">
+                            <option value="un">Unidade</option>
+                            <option value="kg">Quilograma (kg)</option>
+                            <option value="g">Grama (g)</option>
+                            <option value="l">Litro (l)</option>
+                            <option value="ml">Mililitro (ml)</option>
+                            <option value="pct">Pacote</option>
+                            <option value="cx">Caixa</option>
+                            <option value="dz">Dúzia</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Preço Unitário (opcional):</label>
+                <input type="number" step="0.01" id="itemPrice" placeholder="R$ 0,00">
+            </div>
+            
+            <div class="form-group">
+                <label>Observações:</label>
+                <textarea id="purchaseNotes" placeholder="Observações sobre a compra"></textarea>
+            </div>
+            
+            <button class="btn btn-success" onclick="savePurchaseStatus()">Salvar</button>
+            <button class="btn btn-danger" onclick="closeModal('purchaseStatusModal')">Cancelar</button>
+        </div>
     </div>
 
-    <!-- Notificações -->
-    <div class="notification" id="notification"></div>
+    <!-- Notificação -->
+    <div id="notification" class="notification"></div>
 
     <script>
-        // Configuração do Firebase (SUBSTITUA PELAS SUAS CREDENCIAIS)
-        const firebaseConfig = {
-            apiKey: "your-api-key",
-            authDomain: "your-project.firebaseapp.com",
-            databaseURL: "https://your-project-default-rtdb.firebaseio.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "your-app-id"
+        // Configuração de senhas por setor (todas 123)
+        const sectorPasswords = {
+            'cozinha': '123',
+            'lavanderia': '123',
+            'limpeza': '123',
+            'bar': '123',
+            'escritorio': '123',
+            'area_externa': '123',
+            'compras': '123',
+            'geral': '123'
         };
 
-        // Inicializar Firebase (comentado para demonstração)
-        // firebase.initializeApp(firebaseConfig);
-        // const database = firebase.database();
+        const sectorNames = {
+            'cozinha': 'Cozinha',
+            'lavanderia': 'Lavanderia',
+            'limpeza': 'Limpeza',
+            'bar': 'Bar',
+            'escritorio': 'Escritório',
+            'area_externa': 'Área Externa',
+            'compras': 'Compras',
+            'geral': 'Lista Geral (Administrador)'
+        };
 
-        // Simulação de estado para demonstração
-        let items = [];
-        let history = [];
-        let currentFilter = '';
-        let currentCategory = '';
-        let selectedPredefinedItem = null;
-
-        // Itens pré-definidos baseados na sua lista
-        const predefinedItems = [
+        // Lista de produtos organizados por categoria
+        const productList = [
             // CEREAIS / FARDOS
-            { name: "Arroz fd", category: "Cereais / Fardos", unit: "kg" },
+            { name: "Arroz", category: "Cereais / Fardos", unit: "kg" },
             { name: "Arroz integral", category: "Cereais / Fardos", unit: "kg" },
             { name: "Açúcar cristal", category: "Cereais / Fardos", unit: "kg" },
             { name: "Açúcar refinado", category: "Cereais / Fardos", unit: "kg" },
@@ -590,10 +921,10 @@
             { name: "Biscoito maizena", category: "Cereais / Fardos", unit: "pct" },
             { name: "Café", category: "Cereais / Fardos", unit: "pct" },
             { name: "Cevada", category: "Cereais / Fardos", unit: "pct" },
-            { name: "Farinha de mandioca 1kg", category: "Cereais / Fardos", unit: "1kg" },
-            { name: "Farinha de quibe 500gr", category: "Cereais / Fardos", unit: "500g" },
-            { name: "Farinha de trigo fd c/10kg", category: "Cereais / Fardos", unit: "10kg" },
-            { name: "Fubá de milho 1kg", category: "Cereais / Fardos", unit: "1kg" },
+            { name: "Farinha de mandioca", category: "Cereais / Fardos", unit: "kg" },
+            { name: "Farinha de quibe", category: "Cereais / Fardos", unit: "g" },
+            { name: "Farinha de trigo", category: "Cereais / Fardos", unit: "kg" },
+            { name: "Fubá de milho", category: "Cereais / Fardos", unit: "kg" },
             { name: "Granola", category: "Cereais / Fardos", unit: "pct" },
             { name: "Macarrão espaguete", category: "Cereais / Fardos", unit: "pct" },
             { name: "Macarrão tipo parafuso", category: "Cereais / Fardos", unit: "pct" },
@@ -601,15 +932,15 @@
             { name: "Macarrão tipo penne", category: "Cereais / Fardos", unit: "pct" },
             { name: "Massa para lasanha", category: "Cereais / Fardos", unit: "pct" },
             { name: "Milho para canjica", category: "Cereais / Fardos", unit: "pct" },
-            { name: "Polvilho doce 500gr", category: "Cereais / Fardos", unit: "500g" },
-            { name: "Polvilho azedo 500gr", category: "Cereais / Fardos", unit: "500g" },
+            { name: "Polvilho doce", category: "Cereais / Fardos", unit: "g" },
+            { name: "Polvilho azedo", category: "Cereais / Fardos", unit: "g" },
             { name: "Sal refinado", category: "Cereais / Fardos", unit: "pct" },
             { name: "Sal grosso", category: "Cereais / Fardos", unit: "pct" },
-            { name: "Feijão fd", category: "Cereais / Fardos", unit: "kg" },
-            { name: "Ervilha 500gr", category: "Cereais / Fardos", unit: "500g" },
+            { name: "Feijão", category: "Cereais / Fardos", unit: "kg" },
+            { name: "Ervilha", category: "Cereais / Fardos", unit: "g" },
 
             // PROTEÍNAS
-            { name: "Atum, 170 gr", category: "Proteínas", unit: "170g" },
+            { name: "Atum", category: "Proteínas", unit: "un" },
             { name: "Sardinha", category: "Proteínas", unit: "un" },
             { name: "Ovos", category: "Proteínas", unit: "dz" },
             { name: "Carne moída", category: "Proteínas", unit: "kg" },
@@ -619,23 +950,22 @@
             { name: "Coxa sobrecoxa", category: "Proteínas", unit: "kg" },
 
             // LATICÍNIOS
-            { name: "Leite integral 1lt", category: "Laticínios", unit: "1lt" },
-            { name: "Leite de soja", category: "Laticínios", unit: "lt" },
-            { name: "Leite condensado", category: "Laticínios", unit: "pct" },
-            { name: "Leite de coco", category: "Laticínios", unit: "pct" },
-            { name: "Creme de leite cx c/24", category: "Laticínios", unit: "cx" },
-            { name: "Margarina", category: "Laticínios", unit: "pct" },
+            { name: "Leite integral", category: "Laticínios", unit: "l" },
+            { name: "Leite de soja", category: "Laticínios", unit: "l" },
+            { name: "Leite condensado", category: "Laticínios", unit: "un" },
+            { name: "Leite de coco", category: "Laticínios", unit: "un" },
+            { name: "Creme de leite", category: "Laticínios", unit: "un" },
+            { name: "Margarina", category: "Laticínios", unit: "un" },
             { name: "Queijo", category: "Laticínios", unit: "kg" },
-            { name: "Requeijão", category: "Laticínios", unit: "pct" },
-            { name: "Iogurte", category: "Laticínios", unit: "pct" },
-            { name: "Chantilly", category: "Laticínios", unit: "pct" },
+            { name: "Requeijão", category: "Laticínios", unit: "un" },
+            { name: "Iogurte", category: "Laticínios", unit: "un" },
+            { name: "Chantilly", category: "Laticínios", unit: "un" },
 
             // FRUTAS
-            { name: "Abacate", category: "Frutas", unit: "kg" },
-            { name: "Abacaxi", category: "Frutas", unit: "und" },
-            { name: "Banana da terra verde", category: "Frutas", unit: "kg" },
-            { name: "Banana da terra madura", category: "Frutas", unit: "kg" },
-            { name: "Banana nanica", category: "Frutas", unit: "kg" },
+            { name: "Abacate", category: "Frutas", unit: "un" },
+            { name: "Abacaxi", category: "Frutas", unit: "un" },
+            { name: "Banana da terra", category: "Frutas", unit: "dz" },
+            { name: "Banana nanica", category: "Frutas", unit: "dz" },
             { name: "Caqui", category: "Frutas", unit: "kg" },
             { name: "Goiaba", category: "Frutas", unit: "kg" },
             { name: "Kiwi", category: "Frutas", unit: "kg" },
@@ -643,24 +973,23 @@
             { name: "Lima", category: "Frutas", unit: "kg" },
             { name: "Limão", category: "Frutas", unit: "kg" },
             { name: "Maçã", category: "Frutas", unit: "kg" },
-            { name: "Mamão", category: "Frutas", unit: "kg" },
-            { name: "Manga", category: "Frutas", unit: "kg" },
+            { name: "Mamão", category: "Frutas", unit: "un" },
+            { name: "Manga", category: "Frutas", unit: "un" },
             { name: "Maracujá", category: "Frutas", unit: "kg" },
-            { name: "Melancia", category: "Frutas", unit: "kg" },
+            { name: "Melancia", category: "Frutas", unit: "un" },
             { name: "Morango", category: "Frutas", unit: "bdj" },
             { name: "Nectarina", category: "Frutas", unit: "kg" },
             { name: "Pera", category: "Frutas", unit: "kg" },
             { name: "Pêssego", category: "Frutas", unit: "kg" },
-            { name: "Ponkan", category: "Frutas", unit: "kg" },
             { name: "Tangerina", category: "Frutas", unit: "kg" },
             { name: "Uva", category: "Frutas", unit: "kg" },
 
             // VERDURAS
-            { name: "Acelga", category: "Verduras", unit: "und" },
+            { name: "Acelga", category: "Verduras", unit: "un" },
             { name: "Agrião", category: "Verduras", unit: "maço" },
-            { name: "Alface comum", category: "Verduras", unit: "maço" },
-            { name: "Alface americana", category: "Verduras", unit: "maço" },
-            { name: "Alface crespa", category: "Verduras", unit: "maço" },
+            { name: "Alface comum", category: "Verduras", unit: "un" },
+            { name: "Alface americana", category: "Verduras", unit: "un" },
+            { name: "Alface crespa", category: "Verduras", unit: "un" },
             { name: "Almeirão", category: "Verduras", unit: "maço" },
             { name: "Cebolinha verde", category: "Verduras", unit: "maço" },
             { name: "Chicória", category: "Verduras", unit: "maço" },
@@ -668,186 +997,279 @@
             { name: "Couve manteiga", category: "Verduras", unit: "maço" },
             { name: "Escarola", category: "Verduras", unit: "maço" },
             { name: "Espinafre", category: "Verduras", unit: "maço" },
-            { name: "Folhas de mostarda", category: "Verduras", unit: "und" },
-            { name: "Hortelã", category: "Verduras", unit: "un" },
             { name: "Rúcula", category: "Verduras", unit: "maço" },
             { name: "Salsinha", category: "Verduras", unit: "maço" },
 
             // LEGUMES
-            { name: "Abóbora cabotián", category: "Legumes", unit: "kg" },
-            { name: "Abóbora paulista", category: "Legumes", unit: "kg" },
+            { name: "Abóbora", category: "Legumes", unit: "kg" },
             { name: "Abobrinha verde", category: "Legumes", unit: "kg" },
             { name: "Alho", category: "Legumes", unit: "kg" },
-            { name: "Alho poró", category: "Legumes", unit: "und" },
+            { name: "Alho poró", category: "Legumes", unit: "un" },
             { name: "Batata lavada", category: "Legumes", unit: "kg" },
             { name: "Batata doce", category: "Legumes", unit: "kg" },
             { name: "Berinjela", category: "Legumes", unit: "kg" },
             { name: "Beterraba", category: "Legumes", unit: "kg" },
-            { name: "Brócolis", category: "Legumes", unit: "und" },
-            { name: "Cará", category: "Legumes", unit: "kg" },
+            { name: "Brócolis", category: "Legumes", unit: "un" },
             { name: "Cebola", category: "Legumes", unit: "kg" },
             { name: "Cebola roxa", category: "Legumes", unit: "kg" },
             { name: "Cenoura", category: "Legumes", unit: "kg" },
             { name: "Chuchu", category: "Legumes", unit: "kg" },
-            { name: "Couve-flor", category: "Legumes", unit: "und" },
+            { name: "Couve-flor", category: "Legumes", unit: "un" },
             { name: "Gengibre", category: "Legumes", unit: "kg" },
-            { name: "Inhame", category: "Legumes", unit: "kg" },
-            { name: "Jiló", category: "Legumes", unit: "kg" },
-            { name: "Maxixe", category: "Legumes", unit: "kg" },
-            { name: "Mandioca", category: "Legumes", unit: "kg" },
-            { name: "Milho verde", category: "Legumes", unit: "und" },
-            { name: "Nabo", category: "Legumes", unit: "kg" },
-            { name: "Pepino comum", category: "Legumes", unit: "kg" },
-            { name: "Pepino japonês", category: "Legumes", unit: "kg" },
-            { name: "Pimenta ardida", category: "Legumes", unit: "kg" },
-            { name: "Pimentão verde", category: "Legumes", unit: "kg" },
-            { name: "Pimentão amarelo", category: "Legumes", unit: "kg" },
-            { name: "Pimentão vermelho", category: "Legumes", unit: "kg" },
-            { name: "Quiabo", category: "Legumes", unit: "kg" },
-            { name: "Rabanete", category: "Legumes", unit: "kg" },
-            { name: "Repolho roxo", category: "Legumes", unit: "kg" },
-            { name: "Repolho verde", category: "Legumes", unit: "kg" },
             { name: "Tomate", category: "Legumes", unit: "kg" },
-            { name: "Tomate p/molho", category: "Legumes", unit: "kg" },
+            { name: "Tomate para molho", category: "Legumes", unit: "kg" },
             { name: "Vagem", category: "Legumes", unit: "kg" },
 
             // LIMPEZA
             { name: "Detergente", category: "Limpeza", unit: "un" },
             { name: "Sabão em pó", category: "Limpeza", unit: "kg" },
-            { name: "Desinfetante", category: "Limpeza", unit: "lt" },
-            { name: "Água sanitária", category: "Limpeza", unit: "lt" },
+            { name: "Desinfetante", category: "Limpeza", unit: "l" },
+            { name: "Água sanitária", category: "Limpeza", unit: "l" },
             { name: "Esponja", category: "Limpeza", unit: "un" },
             { name: "Papel toalha", category: "Limpeza", unit: "pct" },
             { name: "Saco de lixo", category: "Limpeza", unit: "pct" },
 
             // BEBIDAS
-            { name: "Coca-Cola 2L", category: "Bebidas", unit: "2L" },
-            { name: "Coca-Cola Lata 310ml Zero", category: "Bebidas", unit: "310ml" },
-            { name: "Coca-Cola Lata 310ml Açúcar", category: "Bebidas", unit: "310ml" },
-            { name: "Água com gás 500ml", category: "Bebidas", unit: "500ml" },
-            { name: "Água sem gás 500ml", category: "Bebidas", unit: "500ml" }
+            { name: "Refrigerante", category: "Bebidas", unit: "l" },
+            { name: "Refrigerante Zero", category: "Bebidas", unit: "ml" },
+            { name: "Água com gás", category: "Bebidas", unit: "ml" },
+            { name: "Água sem gás", category: "Bebidas", unit: "ml" }
         ];
 
-        // Funções para o menu de categorias
-        function showPredefinedByCategory(category, btn) {
-            document.querySelectorAll('.category-nav .category-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderPredefinedItems(category);
-        }
+        // Estado da aplicação
+        let currentSector = null;
+        let currentSectorItems = [];
+        let currentInventory = [];
+        let history = [];
+        let currentHistoryDetails = null;
+        let shoppingList = [];
+        let purchaseStatus = '';
 
-        function renderPredefinedItems(category = 'Cereais / Fardos') {
-            const container = document.getElementById('predefinedItems');
-            if (!container) return;
-            
-            const filtered = predefinedItems.filter(item => item.category === category);
-            
-            if (filtered.length === 0) {
-                container.innerHTML = `<div style="text-align: center; padding: 10px; color: #666;">
-                    Nenhum item nesta categoria
-                </div>`;
-                return;
-            }
-            
-            // Atualização com nova função selectPredefinedItem
-            container.innerHTML = filtered.map(item =>
-                `<div class="predefined-item" onclick="selectPredefinedItem('${item.name}', '${item.category}', '${item.unit}')">
-                    ${item.name}
-                    <br><small>${item.unit}</small>
-                </div>`
-            ).join('');
-        }
-
-        function selectPredefinedItem(name, category, unit) {
-            selectedPredefinedItem = { name, category, unit };
-            
-            const modal = document.createElement('div');
-            modal.className = 'modal-overlay';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-title">Adicionar ${name}</div>
-                    
-                    <div class="form-group">
-                        <label>Quantidade *</label>
-                        <input type="text" id="modalQuantity" placeholder="Ex: 2 ${unit}" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Valor (R$)</label>
-                        <input type="number" id="modalPrice" placeholder="0,00" step="0.01" min="0">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Observações (opcional)</label>
-                        <input type="text" id="modalNotes" placeholder="Alguma observação?">
-                    </div>
-                    
-                    <div class="modal-actions">
-                        <button class="btn btn-danger" onclick="document.body.removeChild(this.parentElement.parentElement.parentElement)">
-                            Cancelar
-                        </button>
-                        <button class="btn btn-success" onclick="addPredefinedItem()">
-                            Adicionar
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-            document.getElementById('modalQuantity').focus();
-            
-            // Permitir fechar com ESC
-            const closeModal = (e) => {
-                if (e.key === 'Escape') {
-                    document.body.removeChild(modal);
-                    document.removeEventListener('keydown', closeModal);
+        // Carregar dados do localStorage
+        function loadData() {
+            const data = localStorage.getItem('restaurantManagement');
+            if (data) {
+                const parsed = JSON.parse(data);
+                history = parsed.history || [];
+                shoppingList = parsed.shoppingList || [];
+                
+                // Carregar dados específicos do setor atual
+                if (currentSector) {
+                    currentSectorItems = parsed[currentSector + '_items'] || [];
+                    currentInventory = parsed[currentSector + '_inventory'] || [];
                 }
-            };
-            document.addEventListener('keydown', closeModal);
+            }
         }
 
-        function addPredefinedItem() {
-            if (!selectedPredefinedItem) return;
+        // Salvar dados no localStorage
+        function saveData() {
+            const data = {
+                history: history,
+                shoppingList: shoppingList
+            };
             
-            const quantity = document.getElementById('modalQuantity').value.trim();
-            const price = parseFloat(document.getElementById('modalPrice').value) || 0;
-            const notes = document.getElementById('modalNotes').value.trim();
+            if (currentSector) {
+                data[currentSector + '_items'] = currentSectorItems;
+                data[currentSector + '_inventory'] = currentInventory;
+            }
             
-            if (!quantity) {
-                showNotification('Quantidade é obrigatória!', 'error');
+            localStorage.setItem('restaurantManagement', JSON.stringify(data));
+        }
+
+        // Mostrar modal de senha
+        function showPasswordModal(sector) {
+            currentSector = sector;
+            document.getElementById('passwordModal').classList.add('active');
+            document.getElementById('passwordInput').focus();
+        }
+
+        // Autenticar setor
+        function authenticate() {
+            const password = document.getElementById('passwordInput').value;
+            
+            if (password === sectorPasswords[currentSector]) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainSystem').style.display = 'block';
+                document.getElementById('currentSector').textContent = sectorNames[currentSector];
+                document.getElementById('sectorName').textContent = sectorNames[currentSector];
+                
+                // Mostrar abas específicas para cada setor
+                if (currentSector === 'compras') {
+                    document.getElementById('comprasTab').style.display = 'flex';
+                    document.getElementById('receitasTab').style.display = 'none';
+                    switchTab('compras');
+                } else if (currentSector === 'cozinha') {
+                    document.getElementById('comprasTab').style.display = 'none';
+                    document.getElementById('receitasTab').style.display = 'flex';
+                } else if (currentSector === 'geral') {
+                    document.getElementById('comprasTab').style.display = 'none';
+                    document.getElementById('receitasTab').style.display = 'none';
+                    // Usuário geral pode acessar todas as categorias
+                } else {
+                    document.getElementById('comprasTab').style.display = 'none';
+                    document.getElementById('receitasTab').style.display = 'none';
+                }
+                
+                closeModal('passwordModal');
+                loadData();
+                updateUI();
+                showNotification('Login realizado com sucesso!');
+            } else {
+                showNotification('Senha incorreta!', 'error');
+            }
+            
+            document.getElementById('passwordInput').value = '';
+        }
+
+        // Logout
+        function logout() {
+            currentSector = null;
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('mainSystem').style.display = 'none';
+        }
+
+        // Fechar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Trocar aba
+        function switchTab(tab) {
+            // Remover active de todas as abas
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            
+            // Ativar aba selecionada
+            document.getElementById(tab).classList.add('active');
+            
+            // Encontrar e ativar a tab correta
+            const tabs = document.querySelectorAll('.tab');
+            for (let i = 0; i < tabs.length; i++) {
+                if (tabs[i].getAttribute('onclick').includes(tab)) {
+                    tabs[i].classList.add('active');
+                    break;
+                }
+            }
+            
+            updateUI();
+        }
+
+        // Mostrar sugestões de produtos
+        function showSuggestions(query, type) {
+            const suggestionsContainer = document.getElementById(`${type}Suggestions`);
+            
+            if (!query || query.length < 2) {
+                suggestionsContainer.style.display = 'none';
+                suggestionsContainer.innerHTML = '';
                 return;
             }
             
-            const nameWithNotes = selectedPredefinedItem.name + (notes ? ` (${notes})` : '');
+            // Filtrar produtos que correspondem à consulta
+            let filteredProducts = productList.filter(product => 
+                product.name.toLowerCase().includes(query.toLowerCase())
+            );
             
-            const newItem = {
-                id: Date.now(),
-                name: nameWithNotes,
-                quantity,
-                price,
-                category: selectedPredefinedItem.category,
-                completed: false,
-                addedAt: new Date().toISOString(),
-                alternative: null
-            };
+            // Se for usuário geral, mostrar todas as categorias
+            // Se for setor específico, filtrar por categorias relevantes
+            if (currentSector !== 'geral') {
+                const sectorCategories = {
+                    'cozinha': ['Cereais / Fardos', 'Proteínas', 'Laticínios', 'Frutas', 'Verduras', 'Legumes'],
+                    'bar': ['Bebidas'],
+                    'limpeza': ['Limpeza'],
+                    'lavanderia': ['Limpeza'],
+                    'area_externa': ['Cereais / Fardos', 'Bebidas', 'Limpeza'],
+                    'escritorio': ['Cereais / Fardos', 'Bebidas', 'Limpeza']
+                };
+                
+                if (sectorCategories[currentSector]) {
+                    filteredProducts = filteredProducts.filter(product => 
+                        sectorCategories[currentSector].includes(product.category)
+                    );
+                }
+            }
             
-            items.unshift(newItem);
-            saveToLocalStorage();
-            renderItems();
-            updateTotal();
+            if (filteredProducts.length === 0) {
+                suggestionsContainer.style.display = 'none';
+                suggestionsContainer.innerHTML = '';
+                return;
+            }
             
-            // Fechar modal
-            const modal = document.querySelector('.modal-overlay');
-            if (modal) document.body.removeChild(modal);
+            // Agrupar por categoria
+            const groupedByCategory = {};
+            filteredProducts.forEach(product => {
+                if (!groupedByCategory[product.category]) {
+                    groupedByCategory[product.category] = [];
+                }
+                groupedByCategory[product.category].push(product);
+            });
             
-            showNotification('Item adicionado com sucesso!', 'success');
+            // Construir HTML das sugestões
+            let suggestionsHTML = '';
+            
+            for (const category in groupedByCategory) {
+                suggestionsHTML += `<div class="suggestion-category">${category}</div>`;
+                
+                groupedByCategory[category].forEach(product => {
+                    suggestionsHTML += `
+                        <div class="suggestion-item" onclick="selectSuggestion('${product.name}', '${type}', '${product.unit}')">
+                            ${product.name} <span style="color: #666; font-size: 12px;">(${product.unit})</span>
+                        </div>
+                    `;
+                });
+            }
+            
+            suggestionsContainer.innerHTML = suggestionsHTML;
+            suggestionsContainer.style.display = 'block';
         }
 
-        // Restante das funções (addItem, toggleItem, etc.)
+        // Selecionar uma sugestão
+        function selectSuggestion(productName, type, unit) {
+            if (type === 'item') {
+                document.getElementById('itemName').value = productName;
+                document.getElementById('itemSuggestions').style.display = 'none';
+                
+                // Preencher automaticamente a unidade se disponível
+                if (unit) {
+                    document.getElementById('itemUnit').value = unit;
+                }
+            } else if (type === 'inventory') {
+                document.getElementById('inventoryItemName').value = productName;
+                document.getElementById('inventorySuggestions').style.display = 'none';
+                
+                // Preencher automaticamente a unidade se disponível
+                if (unit) {
+                    document.getElementById('inventoryUnit').value = unit;
+                }
+            }
+        }
+
+        // Fechar sugestões ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.form-group')) {
+                document.getElementById('itemSuggestions').style.display = 'none';
+                document.getElementById('inventorySuggestions').style.display = 'none';
+            }
+        });
+
+        // Mostrar modal adicionar item
+        function showAddItemModal() {
+            document.getElementById('addItemModal').classList.add('active');
+            document.getElementById('itemName').focus();
+        }
+
+        // Mostrar modal adicionar inventário
+        function showAddInventoryModal() {
+            document.getElementById('addInventoryModal').classList.add('active');
+            document.getElementById('inventoryItemName').focus();
+        }
+
+        // Adicionar item à lista
         function addItem() {
             const name = document.getElementById('itemName').value.trim();
-            const quantity = document.getElementById('itemQuantity').value.trim();
-            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
-            const category = document.getElementById('itemCategory').value;
+            const quantity = document.getElementById('itemQuantity').value;
+            const unit = document.getElementById('itemUnit').value;
+            const priority = document.getElementById('itemPriority').value;
+            const notes = document.getElementById('itemNotes').value.trim();
 
             if (!name || !quantity) {
                 showNotification('Nome e quantidade são obrigatórios!', 'error');
@@ -856,278 +1278,625 @@
 
             const newItem = {
                 id: Date.now(),
-                name,
-                quantity,
-                price,
-                category,
-                completed: false,
-                addedAt: new Date().toISOString(),
-                alternative: null
+                name: name,
+                quantity: quantity + ' ' + unit,
+                priority: priority,
+                notes: notes,
+                createdAt: new Date().toISOString(),
+                sector: currentSector
             };
 
-            items.unshift(newItem);
-            saveToLocalStorage();
-            renderItems();
-            updateTotal();
-            clearForm();
+            currentSectorItems.unshift(newItem);
+            saveData();
+            updateUI();
+            closeModal('addItemModal');
             
-            showNotification('Item adicionado com sucesso!', 'success');
-        }
-
-        function clearForm() {
+            // Limpar formulário
             document.getElementById('itemName').value = '';
             document.getElementById('itemQuantity').value = '';
-            document.getElementById('itemPrice').value = '';
-            document.getElementById('itemCategory').value = '';
+            document.getElementById('itemUnit').value = 'un';
+            document.getElementById('itemPriority').value = 'normal';
+            document.getElementById('itemNotes').value = '';
+            
+            showNotification('Item adicionado com sucesso!');
         }
 
-        function toggleItem(id) {
-            const item = items.find(i => i.id === id);
-            if (item) {
-                item.completed = !item.completed;
-                item.completedAt = item.completed ? new Date().toISOString() : null;
-                saveToLocalStorage();
-                renderItems();
-                updateTotal();
-                
-                showNotification(
-                    item.completed ? 'Item marcado como comprado!' : 'Item desmarcado!', 
-                    'success'
-                );
-            }
-        }
+        // Adicionar item ao inventário
+        function addInventoryItem() {
+            const name = document.getElementById('inventoryItemName').value.trim();
+            const quantity = parseInt(document.getElementById('inventoryQuantity').value) || 0;
+            const minQuantity = parseInt(document.getElementById('inventoryMinQuantity').value) || 0;
+            const unit = document.getElementById('inventoryUnit').value.trim();
 
-        function editItem(id) {
-            const item = items.find(i => i.id === id);
-            if (!item) return;
-
-            const newName = prompt('Nome do produto:', item.name);
-            const newQuantity = prompt('Quantidade:', item.quantity);
-            const newPrice = prompt('Preço (deixe vazio se não souber):', item.price || '');
-
-            if (newName && newQuantity) {
-                item.name = newName.trim();
-                item.quantity = newQuantity.trim();
-                item.price = parseFloat(newPrice) || 0;
-                
-                saveToLocalStorage();
-                renderItems();
-                updateTotal();
-                showNotification('Item editado com sucesso!', 'success');
-            }
-        }
-
-        function deleteItem(id) {
-            if (confirm('Tem certeza que deseja excluir este item?')) {
-                items = items.filter(i => i.id !== id);
-                saveToLocalStorage();
-                renderItems();
-                updateTotal();
-                showNotification('Item excluído!', 'success');
-            }
-        }
-
-        function markAsNotFound(id) {
-            const item = items.find(i => i.id === id);
-            if (!item) return;
-
-            const alternative = prompt('Produto não encontrado. Digite uma alternativa ou observação:');
-            if (alternative) {
-                item.alternative = alternative.trim();
-                item.notFound = true;
-                saveToLocalStorage();
-                renderItems();
-                showNotification('Alternativa salva!', 'success');
-            }
-        }
-
-        function renderItems() {
-            const container = document.getElementById('itemsList');
-            const filteredItems = items.filter(item => {
-                const matchesSearch = !currentFilter || 
-                    item.name.toLowerCase().includes(currentFilter.toLowerCase()) ||
-                    item.quantity.toLowerCase().includes(currentFilter.toLowerCase());
-                
-                const matchesCategory = !currentCategory || item.category === currentCategory;
-                
-                return matchesSearch && matchesCategory;
-            });
-
-            if (filteredItems.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #6c757d;">
-                        <h3>📝 Nenhum item encontrado</h3>
-                        <p>Adicione itens à sua lista de compras</p>
-                    </div>
-                `;
+            if (!name) {
+                showNotification('Nome do item é obrigatório!', 'error');
                 return;
             }
 
-            container.innerHTML = filteredItems.map(item => `
-                <div class="item ${item.completed ? 'completed' : ''}">
+            const newItem = {
+                id: Date.now(),
+                name: name,
+                quantity: quantity,
+                minQuantity: minQuantity,
+                unit: unit,
+                sector: currentSector,
+                createdAt: new Date().toISOString()
+            };
+
+            currentInventory.push(newItem);
+            saveData();
+            updateUI();
+            closeModal('addInventoryModal');
+            
+            // Limpar formulário
+            document.getElementById('inventoryItemName').value = '';
+            document.getElementById('inventoryQuantity').value = '';
+            document.getElementById('inventoryMinQuantity').value = '';
+            document.getElementById('inventoryUnit').value = '';
+            
+            showNotification('Item adicionado ao inventário!');
+        }
+
+        // Deletar item da lista
+        function deleteItem(id) {
+            if (confirm('Tem certeza que deseja excluir este item?')) {
+                currentSectorItems = currentSectorItems.filter(i => i.id !== id);
+                saveData();
+                updateUI();
+                showNotification('Item excluído!');
+            }
+        }
+
+        // Deletar item do inventário
+        function deleteInventoryItem(id) {
+            if (confirm('Tem certeza que deseja excluir este item do inventário?')) {
+                currentInventory = currentInventory.filter(i => i.id !== id);
+                saveData();
+                updateUI();
+                showNotification('Item removido do inventário!');
+            }
+        }
+
+        // Atualizar quantidade no inventário
+        function updateInventoryQuantity(id, change) {
+            const item = currentInventory.find(i => i.id === id);
+            if (item) {
+                const newQuantity = Math.max(0, item.quantity + change);
+                item.quantity = newQuantity;
+                saveData();
+                updateUI();
+            }
+        }
+
+        // Finalizar lista
+        function finalizeList() {
+            if (currentSectorItems.length === 0) {
+                showNotification('Não há itens na lista!', 'error');
+                return;
+            }
+
+            if (confirm(`Finalizar lista com ${currentSectorItems.length} itens?`)) {
+                const listData = {
+                    id: Date.now(),
+                    sector: currentSector,
+                    sectorName: sectorNames[currentSector],
+                    date: new Date().toLocaleDateString('pt-BR'),
+                    items: [...currentSectorItems],
+                    totalItems: currentSectorItems.length,
+                    finalizedAt: new Date().toISOString()
+                };
+
+                history.unshift(listData);
+                
+                // Adicionar à lista de compras
+                currentSectorItems.forEach(item => {
+                    shoppingList.push({
+                        id: Date.now() + Math.random(),
+                        name: item.name,
+                        quantity: item.quantity,
+                        sector: currentSector,
+                        requestedAt: new Date().toISOString()
+                    });
+                });
+                
+                currentSectorItems = [];
+                saveData();
+                updateUI();
+                
+                showNotification('Lista finalizada e enviada para compras!');
+            }
+        }
+
+        // Mesclar listas de compras
+        function mergeShoppingLists() {
+            // Já estamos fazendo merge automático quando as listas são finalizadas
+            showNotification('Listas do dia já estão mescladas automaticamente!');
+        }
+
+        // Filtrar lista de compras
+        function filterShoppingList(filter) {
+            const items = document.querySelectorAll('.shopping-list-item');
+            
+            items.forEach(item => {
+                if (filter === 'todos') {
+                    item.style.display = 'flex';
+                } else {
+                    const sector = item.getAttribute('data-sector');
+                    if (sector === filter) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                }
+            });
+            
+            // Ativar o botão de filtro selecionado
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Mostrar modal de status de compra
+        function showPurchaseStatusModal(itemId) {
+            const item = shoppingList.find(i => i.id === itemId);
+            if (!item) return;
+            
+            document.getElementById('purchaseItemId').value = itemId;
+            document.getElementById('purchaseItemTitle').textContent = `Status: ${item.name}`;
+            document.getElementById('quantitySection').style.display = 'none';
+            document.getElementById('itemPrice').value = '';
+            document.getElementById('purchaseNotes').value = '';
+            
+            document.getElementById('purchaseStatusModal').classList.add('active');
+        }
+
+        // Definir status de compra
+        function setPurchaseStatus(status) {
+            purchaseStatus = status;
+            
+            if (status === 'parcial') {
+                document.getElementById('quantitySection').style.display = 'block';
+            } else {
+                document.getElementById('quantitySection').style.display = 'none';
+            }
+        }
+
+        // Salvar status de compra
+        function savePurchaseStatus() {
+            const itemId = parseFloat(document.getElementById('purchaseItemId').value);
+            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+            const notes = document.getElementById('purchaseNotes').value;
+            let purchasedQuantity = '';
+            let purchasedUnit = '';
+            
+            if (purchaseStatus === 'parcial') {
+                purchasedQuantity = document.getElementById('purchasedQuantity').value;
+                purchasedUnit = document.getElementById('purchasedUnit').value;
+                if (!purchasedQuantity) {
+                    showNotification('Informe a quantidade comprada!', 'error');
+                    return;
+                }
+            }
+            
+            const itemIndex = shoppingList.findIndex(i => i.id === itemId);
+            if (itemIndex !== -1) {
+                shoppingList[itemIndex].purchaseStatus = purchaseStatus;
+                shoppingList[itemIndex].price = price;
+                shoppingList[itemIndex].purchaseNotes = notes;
+                
+                if (purchaseStatus === 'encontrado' || purchaseStatus === 'parcial') {
+                    // Atualizar inventário
+                    updateInventoryFromPurchase(shoppingList[itemIndex], purchasedQuantity, purchasedUnit);
+                }
+                
+                saveData();
+                updateUI();
+                closeModal('purchaseStatusModal');
+                showNotification('Status de compra atualizado!');
+            }
+        }
+
+        // Atualizar inventário a partir da compra
+        function updateInventoryFromPurchase(item, purchasedQuantity, purchasedUnit) {
+            let quantityToAdd = item.quantity;
+            let unitToAdd = item.quantity.split(' ')[1] || 'un';
+            
+            if (purchaseStatus === 'parcial') {
+                quantityToAdd = purchasedQuantity;
+                unitToAdd = purchasedUnit;
+            }
+            
+            // Verificar se o item já existe no inventário
+            const existingItemIndex = currentInventory.findIndex(i => i.name === item.name);
+            
+            if (existingItemIndex !== -1) {
+                // Se existe, atualizar a quantidade (assumindo unidades compatíveis)
+                currentInventory[existingItemIndex].quantity += parseFloat(quantityToAdd);
+            } else {
+                // Se não existe, adicionar novo item
+                currentInventory.push({
+                    id: Date.now(),
+                    name: item.name,
+                    quantity: parseFloat(quantityToAdd),
+                    minQuantity: 5, // Valor padrão
+                    unit: unitToAdd,
+                    sector: 'compras',
+                    createdAt: new Date().toISOString()
+                });
+            }
+            
+            saveData();
+        }
+
+        // Finalizar compra
+        function finalizeShopping() {
+            const purchasedItems = shoppingList.filter(item => item.purchaseStatus === 'encontrado' || item.purchaseStatus === 'parcial');
+            const notFoundItems = shoppingList.filter(item => item.purchaseStatus === 'nao_encontrado');
+            const pendingItems = shoppingList.filter(item => !item.purchaseStatus);
+            
+            if (pendingItems.length > 0) {
+                showNotification('Existem itens sem status de compra!', 'error');
+                return;
+            }
+            
+            // Adicionar ao histórico
+            const shoppingData = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString('pt-BR'),
+                purchasedItems: purchasedItems,
+                notFoundItems: notFoundItems,
+                finalizedAt: new Date().toISOString()
+            };
+            
+            history.unshift(shoppingData);
+            shoppingList = [];
+            saveData();
+            updateUI();
+            
+            showNotification('Compra finalizada e salva no histórico!');
+        }
+
+        // Compartilhar lista de compras via WhatsApp
+        function shareShoppingList() {
+            const purchasedItems = shoppingList.filter(item => item.purchaseStatus === 'encontrado' || item.purchaseStatus === 'parcial');
+            const notFoundItems = shoppingList.filter(item => item.purchaseStatus === 'nao_encontrado');
+            
+            if (purchasedItems.length === 0 && notFoundItems.length === 0) {
+                showNotification('Não há itens para compartilhar!', 'error');
+                return;
+            }
+            
+            // Formatar a mensagem para o WhatsApp
+            let message = `*LISTA DE COMPRAS - ${new Date().toLocaleDateString('pt-BR')}*\n\n`;
+            
+            if (purchasedItems.length > 0) {
+                message += `*ITENS COMPRADOS:*\n`;
+                purchasedItems.forEach(item => {
+                    message += `✅ ${item.name} - ${item.quantity}`;
+                    if (item.price) {
+                        message += ` - R$ ${item.price.toFixed(2)}`;
+                    }
+                    message += '\n';
+                });
+                message += '\n';
+            }
+            
+            if (notFoundItems.length > 0) {
+                message += `*ITENS NÃO ENCONTRADOS:*\n`;
+                notFoundItems.forEach(item => {
+                    message += `❌ ${item.name} - ${item.quantity}\n`;
+                });
+            }
+            
+            // Codificar a mensagem para URL
+            const encodedMessage = encodeURIComponent(message);
+            
+            // Gerar o link do WhatsApp
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            
+            // Abrir o WhatsApp em uma nova janela/aba
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Gerar receitas com IA (simulado)
+        function generateRecipes() {
+            // Esta é uma simulação - em um sistema real, isso se conectaria a uma API de IA
+            const availableItems = currentInventory.map(item => item.name).join(', ');
+            
+            // Receitas pré-definidas baseadas nos itens disponíveis
+            const recipes = [
+                {
+                    title: "Risoto de Frango com Legumes",
+                    ingredients: "Arroz, frango, cenoura, vagem, cebola, alho, queijo",
+                    instructions: "Cozinhe o frango e desfie. Refogue os legumes, adicione o arroz e caldo de galinha. Acrescente o frango e finalize com queijo."
+                },
+                {
+                    title: "Salada Mediterrânea",
+                    ingredients: "Alface, tomate, pepino, queijo feta, azeitonas, azeite de oliva",
+                    instructions: "Corte todos os ingredientes em cubos, misture e tempere com azeite, sal e limão."
+                },
+                {
+                    title: "Smoothie Energético",
+                    ingredients: "Banana, morango, iogurte, aveia, mel",
+                    instructions: "Bata todos os ingredientes no liquidificador até obter uma consistência homogênea. Sirva gelado."
+                }
+            ];
+            
+            const recipesList = document.getElementById('recipesList');
+            recipesList.innerHTML = '';
+            
+            recipes.forEach(recipe => {
+                recipesList.innerHTML += `
+                    <div class="recipe-card">
+                        <div class="recipe-title">${recipe.title}</div>
+                        <div class="recipe-ingredients"><strong>Ingredientes:</strong> ${recipe.ingredients}</div>
+                        <div class="recipe-instructions"><strong>Modo de preparo:</strong> ${recipe.instructions}</div>
+                    </div>
+                `;
+            });
+            
+            showNotification('Receitas geradas com base nos itens disponíveis!');
+        }
+
+        // Ver detalhes do histórico
+        function viewHistoryDetails(id) {
+            const list = history.find(h => h.id === id);
+            if (!list) return;
+
+            currentHistoryDetails = list;
+            
+            document.getElementById('historyDetailsTitle').textContent = `Lista do dia ${list.date}`;
+            
+            let detailsHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong>Setor:</strong> ${list.sectorName}<br>
+                    <strong>Finalizada às:</strong> ${new Date(list.finalizedAt).toLocaleString('pt-BR')}<br>
+                    <strong>Itens:</strong> ${list.totalItems} itens
+                </div>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <h4 style="margin-bottom: 10px;">Itens:</h4>
+            `;
+            
+            list.items.forEach(item => {
+                const priority = item.priority === 'urgente' ? '🔴' : item.priority === 'alta' ? '🟡' : '🟢';
+                
+                detailsHTML += `
+                    <div class="history-item">
+                        <div class="history-item-details">
+                            <div>${item.name}</div>
+                            <div>${priority}</div>
+                        </div>
+                        <div>Quantidade: ${item.quantity}</div>
+                        ${item.notes ? `<div class="history-item-notes">Observações: ${item.notes}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            detailsHTML += '</div>';
+            document.getElementById('historyDetailsContent').innerHTML = detailsHTML;
+            document.getElementById('historyDetailsModal').classList.add('active');
+        }
+
+        // Compartilhar lista via WhatsApp
+        function shareToWhatsApp() {
+            if (!currentHistoryDetails) return;
+            
+            const list = currentHistoryDetails;
+            
+            // Formatar a mensagem para o WhatsApp
+            let message = `*LISTA DO DIA ${list.date} - ${list.sectorName.toUpperCase()}*\n\n`;
+            message += `*Itens: ${list.totalItems} itens*\n\n`;
+            
+            list.items.forEach(item => {
+                const priority = item.priority === 'urgente' ? '🔴 URGENTE' : item.priority === 'alta' ? '🟡 ALTA' : '🟢 NORMAL';
+                
+                message += `*${item.name}* - ${item.quantity} ${priority}\n`;
+                
+                if (item.notes) {
+                    message += `Observações: ${item.notes}\n`;
+                }
+                
+                message += '\n';
+            });
+            
+            message += `\n*Sistema de Gestão - Restaurante*`;
+            
+            // Codificar a mensagem para URL
+            const encodedMessage = encodeURIComponent(message);
+            
+            // Gerar o link do WhatsApp
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            
+            // Abrir o WhatsApp em uma nova janela/aba
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Deletar histórico
+        function deleteHistory(id) {
+            if (confirm('Tem certeza que deseja excluir este histórico?')) {
+                history = history.filter(h => h.id !== id);
+                saveData();
+                updateUI();
+                showNotification('Histórico excluído!');
+            }
+        }
+
+        // Renderizar lista de itens
+        function renderItems() {
+            const container = document.getElementById('itemsList');
+            
+            if (currentSectorItems.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">Nenhum item na lista</div>';
+                return;
+            }
+
+            container.innerHTML = currentSectorItems.map(item => `
+                <div class="item-card">
                     <div class="item-header">
-                        <input type="checkbox" class="item-checkbox" 
-                               ${item.completed ? 'checked' : ''} 
-                               onchange="toggleItem(${item.id})">
                         <div class="item-name">${item.name}</div>
                     </div>
                     
                     <div class="item-details">
                         <span>📦 ${item.quantity}</span>
-                        ${item.category ? `<span>🏷️ ${item.category}</span>` : ''}
-                        ${item.price > 0 ? `<span class="item-price">R$ ${item.price.toFixed(2)}</span>` : ''}
+                        <span class="priority priority-${item.priority}">
+                            ${item.priority === 'urgente' ? '🔴' : item.priority === 'alta' ? '🟡' : '🟢'} 
+                            ${item.priority.charAt(0).toUpperCase() + item.priority.slice(1)}
+                        </span>
                     </div>
                     
-                    ${item.alternative ? `
-                        <div style="background: #fff3cd; padding: 8px; border-radius: 6px; margin: 8px 0; font-size: 14px;">
-                            <strong>🔄 Alternativa:</strong> ${item.alternative}
-                        </div>
-                    ` : ''}
+                    ${item.notes ? `<div style="margin: 10px 0; font-size: 14px; color: #666;">💬 ${item.notes}</div>` : ''}
                     
                     <div class="item-actions">
-                        <button class="btn btn-small btn-warning" onclick="editItem(${item.id})">✏️ Editar</button>
-                        <button class="btn btn-small" onclick="markAsNotFound(${item.id})">❌ Não encontrei</button>
-                        <button class="btn btn-small btn-danger" onclick="deleteItem(${item.id})">🗑️ Excluir</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteItem(${item.id})">🗑️</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function updateTotal() {
-            const total = items
-                .filter(item => !item.completed && item.price > 0)
-                .reduce((sum, item) => sum + item.price, 0);
-                
-            document.getElementById('totalValue').textContent = `R$ ${total.toFixed(2)}`;
-        }
-
-        function filterItems() {
-            currentFilter = document.getElementById('searchInput').value;
-            renderItems();
-        }
-
-        function filterByCategory(category) {
-            currentCategory = category;
+        // Renderizar inventário
+        function renderInventory() {
+            const container = document.getElementById('inventoryList');
             
-            // Atualizar botões ativos
-            document.querySelectorAll('.category-filter .category-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            event.target.classList.add('active');
-            renderItems();
-        }
-
-        function saveCurrentList() {
-            if (items.length === 0) {
-                showNotification('Adicione itens antes de salvar a lista!', 'error');
+            if (currentInventory.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">Nenhum item no inventário</div>';
                 return;
             }
 
-            const listData = {
-                id: Date.now(),
-                date: new Date().toLocaleDateString('pt-BR'),
-                items: [...items],
-                total: items.reduce((sum, item) => sum + (item.price || 0), 0),
-                completedItems: items.filter(i => i.completed).length,
-                totalItems: items.length
-            };
-
-            history.unshift(listData);
-            
-            // Limpar lista atual
-            items = [];
-            
-            saveToLocalStorage();
-            renderItems();
-            renderHistory();
-            updateTotal();
-            
-            showNotification('Lista salva no histórico!', 'success');
+            container.innerHTML = currentInventory.map(item => {
+                let statusClass = '';
+                let statusIcon = '';
+                
+                if (item.quantity === 0) {
+                    statusClass = 'out-of-stock';
+                    statusIcon = '🔴';
+                } else if (item.quantity <= item.minQuantity) {
+                    statusClass = 'low-stock';
+                    statusIcon = '🟡';
+                } else {
+                    statusIcon = '🟢';
+                }
+                
+                return `
+                    <div class="inventory-item ${statusClass}">
+                        <div>
+                            <div style="font-weight: bold;">${statusIcon} ${item.name}</div>
+                            <div style="font-size: 12px; color: #666;">Mín: ${item.minQuantity} ${item.unit}</div>
+                        </div>
+                        
+                        <div class="quantity-controls">
+                            <button class="quantity-btn btn-danger" onclick="updateInventoryQuantity(${item.id}, -1)">-</button>
+                            <div class="quantity-display">${item.quantity} ${item.unit}</div>
+                            <button class="quantity-btn btn-success" onclick="updateInventoryQuantity(${item.id}, 1)">+</button>
+                            <button class="btn btn-small btn-danger" onclick="deleteInventoryItem(${item.id})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
+        // Renderizar histórico
         function renderHistory() {
             const container = document.getElementById('historyList');
             
-            if (history.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #6c757d;">
-                        <h3>📅 Nenhuma lista salva</h3>
-                        <p>As listas salvas aparecerão aqui</p>
-                    </div>
-                `;
+            const sectorHistory = history.filter(h => h.sector === currentSector);
+            
+            if (sectorHistory.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">Nenhum histórico encontrado</div>';
                 return;
             }
 
-            container.innerHTML = history.map(list => `
-                <div class="history-item">
-                    <div class="history-header">
-                        <div class="history-date">📅 ${list.date}</div>
-                        <div class="history-total">R$ ${list.total.toFixed(2)}</div>
+            container.innerHTML = sectorHistory.map(list => `
+                <div class="item-card">
+                    <div class="item-header">
+                        <div class="item-name">Lista do dia ${list.date}</div>
+                        <div style="font-size: 14px; color: #666;">${list.totalItems} itens</div>
                     </div>
-                    <div class="history-items">
-                        ${list.completedItems}/${list.totalItems} itens comprados
-                        <button class="btn btn-small" onclick="viewHistoryDetails(${list.id})" style="margin-left: 10px;">
-                            👁️ Ver detalhes
-                        </button>
-                        <button class="btn btn-small btn-danger" onclick="deleteHistory(${list.id})" style="margin-left: 5px;">
-                            🗑️ Excluir
-                        </button>
+                    
+                    <div class="item-details">
+                        <span>📅 ${new Date(list.finalizedAt).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</span>
+                        <span>🏢 ${list.sectorName}</span>
+                    </div>
+                    
+                    <div class="item-actions">
+                        <button class="btn btn-small" onclick="viewHistoryDetails(${list.id})">👁️ Ver</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteHistory(${list.id})">🗑️</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function viewHistoryDetails(id) {
-            const list = history.find(h => h.id === id);
-            if (!list) return;
-
-            const details = list.items.map(item => 
-                `${item.completed ? '✅' : '❌'} ${item.name} - ${item.quantity}${item.price > 0 ? ` (R$ ${item.price.toFixed(2)})` : ''}`
-            ).join('\n');
-
-            alert(`Lista do dia ${list.date}\n\n${details}\n\nTotal: R$ ${list.total.toFixed(2)}`);
-        }
-
-        function deleteHistory(id) {
-            if (confirm('Tem certeza que deseja excluir esta lista do histórico?')) {
-                history = history.filter(h => h.id !== id);
-                saveToLocalStorage();
-                renderHistory();
-                showNotification('Lista excluída do histórico!', 'success');
-            }
-        }
-
-        function showTab(tab) {
-            // Remover active de todas as abas
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        // Renderizar lista de compras
+        function renderShoppingList() {
+            const container = document.getElementById('shoppingList');
             
-            // Ativar aba selecionada
-            event.target.classList.add('active');
-            document.getElementById(tab).classList.add('active');
+            if (shoppingList.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">Nenhum item na lista de compras</div>';
+                return;
+            }
+            
+            container.innerHTML = shoppingList.map(item => {
+                let statusBadge = '';
+                if (item.purchaseStatus === 'encontrado') {
+                    statusBadge = '<span style="color: green; font-weight: bold;">✅ Comprado</span>';
+                } else if (item.purchaseStatus === 'nao_encontrado') {
+                    statusBadge = '<span style="color: red; font-weight: bold;">❌ Não encontrado</span>';
+                } else if (item.purchaseStatus === 'parcial') {
+                    statusBadge = '<span style="color: orange; font-weight: bold;">🔄 Quantidade diferente</span>';
+                }
+                
+                return `
+                    <div class="shopping-list-item" data-sector="${item.sector}">
+                        <div class="shopping-item-info">
+                            <div class="shopping-item-name">${item.name} <small>(${sectorNames[item.sector]})</small></div>
+                            <div class="shopping-item-quantity">Quantidade: ${item.quantity} ${statusBadge}</div>
+                            ${item.price ? `<div>Preço: R$ ${item.price.toFixed(2)}</div>` : ''}
+                            ${item.purchaseNotes ? `<div>Observações: ${item.purchaseNotes}</div>` : ''}
+                        </div>
+                        <div class="shopping-item-actions">
+                            <button class="btn btn-small btn-info" onclick="showPurchaseStatusModal(${item.id})">
+                                ${item.purchaseStatus ? 'Editar' : 'Status'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function saveToLocalStorage() {
-            localStorage.setItem('restaurantShoppingList', JSON.stringify({
-                items: items,
-                history: history
-            }));
+        // Atualizar estatísticas
+        function updateStats() {
+            const totalItems = currentSectorItems.length;
+
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('pendingItems').textContent = totalItems;
+
+            // Estatísticas do inventário
+            const totalInventory = currentInventory.length;
+            const lowStockItems = currentInventory.filter(i => i.quantity <= i.minQuantity && i.quantity > 0).length;
+            const outOfStockItems = currentInventory.filter(i => i.quantity === 0).length;
+
+            document.getElementById('totalInventory').textContent = totalInventory;
+            document.getElementById('lowStockItems').textContent = lowStockItems;
+            document.getElementById('outOfStockItems').textContent = outOfStockItems;
         }
 
-        function loadFromLocalStorage() {
-            const data = localStorage.getItem('restaurantShoppingList');
-            if (data) {
-                const parsed = JSON.parse(data);
-                items = parsed.items || [];
-                history = parsed.history || [];
+        // Atualizar interface
+        function updateUI() {
+            updateStats();
+            renderItems();
+            renderInventory();
+            renderHistory();
+            
+            if (currentSector === 'compras') {
+                renderShoppingList();
             }
         }
 
+        // Mostrar notificação
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
-            notification.className = `notification ${type}`;
+            notification.style.background = type === 'error' ? 'var(--vermelho)' : 'var(--verde-escuro)';
             notification.classList.add('show');
             
             setTimeout(() => {
@@ -1135,204 +1904,34 @@
             }, 3000);
         }
 
-        function shareViaWhatsApp() {
-            const incompleteItems = items.filter(item => !item.completed);
-            if (incompleteItems.length === 0) {
-                showNotification('Nenhum item pendente para compartilhar!', 'error');
-                return;
+        // Event listeners
+        document.addEventListener('keydown', function(e) {
+            // Enter no modal de senha
+            if (e.key === 'Enter' && document.getElementById('passwordModal').classList.contains('active')) {
+                authenticate();
             }
-
-            const total = incompleteItems.reduce((sum, item) => sum + (item.price || 0), 0);
-            let message = `🛒 *Lista de Compras - Restaurante*\n📅 ${new Date().toLocaleDateString('pt-BR')}\n\n`;
             
-            incompleteItems.forEach((item, index) => {
-                message += `${index + 1}. ${item.name} - ${item.quantity}`;
-                if (item.price > 0) message += ` (R$ ${item.price.toFixed(2)})`;
-                if (item.category) message += ` [${item.category}]`;
-                message += '\n';
+            // ESC para fechar modals
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+
+        // Fechar modal clicando fora
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
             });
-            
-            if (total > 0) {
-                message += `\n💰 *Total Estimado: R$ ${total.toFixed(2)}*`;
-            }
-            
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-        }
-
-        function addShareButton() {
-            const totalSection = document.querySelector('.total-section');
-            const shareButton = document.createElement('button');
-            shareButton.className = 'btn btn-small';
-            shareButton.style.marginTop = '10px';
-            shareButton.style.background = '#25D366';
-            shareButton.innerHTML = '📱 Compartilhar no WhatsApp';
-            shareButton.onclick = shareViaWhatsApp;
-            totalSection.appendChild(shareButton);
-        }
-
-        function exportData() {
-            const data = {
-                items: items,
-                history: history,
-                exportDate: new Date().toISOString()
-            };
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `lista-compras-backup-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            showNotification('Backup exportado com sucesso!', 'success');
-        }
-
-        function importData() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    try {
-                        const data = JSON.parse(event.target.result);
-                        
-                        if (confirm('Importar dados irá substituir a lista atual. Continuar?')) {
-                            items = data.items || [];
-                            history = data.history || [];
-                            
-                            saveToLocalStorage();
-                            renderItems();
-                            renderHistory();
-                            updateTotal();
-                            
-                            showNotification('Dados importados com sucesso!', 'success');
-                        }
-                    } catch (error) {
-                        showNotification('Erro ao importar arquivo. Verifique o formato.', 'error');
-                    }
-                };
-                reader.readAsText(file);
-            };
-            
-            input.click();
-        }
-
-        function showAdvancedOptions() {
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.5); z-index: 2000; display: flex;
-                align-items: center; justify-content: center; padding: 20px;
-            `;
-            
-            modal.innerHTML = `
-                <div style="background: white; border-radius: 12px; padding: 30px; max-width: 400px; width: 100%;">
-                    <h3 style="margin-bottom: 20px;">⚙️ Configurações Avançadas</h3>
-                    
-                    <button class="btn" onclick="exportData()" style="margin-bottom: 10px;">
-                        💾 Exportar Backup
-                    </button>
-                    
-                    <button class="btn" onclick="importData()" style="margin-bottom: 10px;">
-                        📂 Importar Backup
-                    </button>
-                    
-                    <button class="btn btn-warning" onclick="clearAllData()" style="margin-bottom: 10px;">
-                        🗑️ Limpar Todos os Dados
-                    </button>
-                    
-                    <button class="btn" onclick="shareViaWhatsApp()" style="margin-bottom: 20px;">
-                        📱 Compartilhar no WhatsApp
-                    </button>
-                    
-                    <button class="btn btn-danger" onclick="closeModal()">
-                        ❌ Fechar
-                    </button>
-                </div>
-            `;
-            
-            modal.onclick = (e) => {
-                if (e.target === modal) closeModal();
-            };
-            
-            window.closeModal = () => document.body.removeChild(modal);
-            document.body.appendChild(modal);
-        }
-
-        function clearAllData() {
-            if (confirm('ATENÇÃO: Isso irá apagar todos os dados (lista atual + histórico). Continuar?')) {
-                items = [];
-                history = [];
-                localStorage.removeItem('restaurantShoppingList');
-                
-                renderItems();
-                renderHistory();
-                updateTotal();
-                
-                showNotification('Todos os dados foram limpos!', 'success');
-                closeModal();
-            }
-        }
+        });
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
-            const header = document.querySelector('.header');
-            const settingsButton = document.createElement('button');
-            settingsButton.style.cssText = `
-                position: absolute; top: 15px; right: 15px;
-                background: rgba(255,255,255,0.2); border: none;
-                color: white; padding: 8px; border-radius: 50%;
-                cursor: pointer; font-size: 16px;
-            `;
-            settingsButton.innerHTML = '⚙️';
-            settingsButton.onclick = showAdvancedOptions;
-            header.appendChild(settingsButton);
-            
-            addShareButton();
-            
-            loadFromLocalStorage();
-            renderItems();
-            renderHistory();
-            updateTotal();
-            
-            // Carregar itens pré-definidos iniciais
-            renderPredefinedItems('Cereais / Fardos');
-        });
-
-        // Atalhos do teclado
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'Enter') {
-                addItem();
-            }
-            
-            if (e.key === 'Escape') {
-                clearForm();
-            }
-            
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-                saveCurrentList();
-            }
-        });
-
-        // Indicadores de conexão
-        window.addEventListener('online', () => {
-            document.getElementById('offlineIndicator').style.display = 'none';
-            showNotification('Conectado! Sincronizando dados...', 'success');
-        });
-        
-        window.addEventListener('offline', () => {
-            document.getElementById('offlineIndicator').style.display = 'block';
+            loadData();
         });
     </script>
-</body>  
+</body>
 </html>
