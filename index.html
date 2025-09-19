@@ -4,580 +4,750 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestão - Restaurante</title>
-    <style>
-        :root {
-            --verde-escuro: #2b4d2b;
-            --verde-medio: #4e7d4e;
-            --verde-claro: #b7d7b7;
-            --bege: #f6f3e7;
-            --branco: #fff;
-            --cinza: #e9ecef;
-            --azul: #0066cc;
-            --vermelho: #dc3545;
-            --amarelo: #ffc107;
-            --whatsapp: #25D366;
-            --roxo: #6f42c1;
-            --laranja: #fd7e14;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, var(--bege) 0%, var(--verde-claro) 100%);
-            min-height: 100vh;
-            color: var(--verde-escuro);
-        }
-
-        .container {
-            max-width: 450px;
-            margin: 0 auto;
-            background: var(--branco);
-            min-height: 100vh;
-            box-shadow: 0 0 20px rgba(43,77,43,0.08);
-            position: relative;
-        }
-
-        .header {
-            background: linear-gradient(135deg, var(--verde-escuro), var(--verde-medio));
-            color: var(--bege);
-            padding: 20px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(43,77,43,0.08);
-        }
-
-        .header h1 {
-            font-size: 1.5rem;
-            margin-bottom: 5px;
-        }
-
-        .header .subtitle {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .login-screen {
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        .sector-buttons {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 30px 0;
-        }
-
-        .sector-btn {
-            background: linear-gradient(135deg, var(--verde-medio), var(--verde-escuro));
-            color: var(--bege);
-            border: none;
-            padding: 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .sector-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(78,125,78,0.15);
-        }
-
-        .sector-btn.geral {
-            background: linear-gradient(135deg, var(--laranja), #e0570c);
-            grid-column: span 2;
-        }
-
-        .tabs {
-            display: flex;
-            background: var(--bege);
-            border-bottom: 1px solid var(--cinza);
-            overflow-x: auto;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 15px 10px;
-            text-align: center;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-            color: var(--verde-escuro);
-            font-size: 14px;
-            min-width: 100px;
-        }
-
-        .tab.active {
-            background: var(--branco);
-            border-bottom-color: var(--verde-medio);
-            color: var(--verde-medio);
-        }
-
-        .tab-content {
-            display: none;
-            padding: 20px;
-            padding-bottom: 100px;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--verde-escuro);
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--cinza);
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--verde-medio);
-        }
-
-        .btn {
-            background: linear-gradient(135deg, var(--verde-medio), var(--verde-escuro));
-            color: var(--bege);
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            width: 100%;
-            transition: all 0.3s;
-            margin-bottom: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(78,125,78,0.15);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #28a745, #20c997);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, var(--vermelho), #c82333);
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, var(--amarelo), #e0a800);
-            color: var(--verde-escuro);
-        }
-
-        .btn-whatsapp {
-            background: linear-gradient(135deg, var(--whatsapp), #128C7E);
-            color: white;
-        }
-
-        .btn-info {
-            background: linear-gradient(135deg, var(--azul), #004d99);
-            color: white;
-        }
-
-        .btn-purple {
-            background: linear-gradient(135deg, var(--roxo), #5a32a3);
-            color: white;
-        }
-
-        .btn-orange {
-            background: linear-gradient(135deg, var(--laranja), #e0570c);
-            color: white;
-        }
-
-        .btn-small {
-            padding: 8px 12px;
-            font-size: 14px;
-            width: auto;
-            margin: 2px;
-        }
-
-        .item-card {
-            background: var(--branco);
-            border: 2px solid var(--cinza);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-
-        .item-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .item-name {
-            font-weight: 600;
-            font-size: 16px;
-            flex: 1;
-        }
-
-        .item-details {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            color: var(--verde-medio);
-            margin-bottom: 10px;
-        }
-
-        .item-actions {
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--verde-escuro);
-            color: var(--bege);
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(43,77,43,0.15);
-            transform: translateX(100%);
-            transition: transform 0.3s;
-            z-index: 1100;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .sector-info {
-            background: var(--verde-claro);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: var(--branco);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border: 2px solid var(--cinza);
-        }
-
-        .stat-number {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--verde-escuro);
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: var(--verde-medio);
-            margin-top: 5px;
-        }
-
-        .inventory-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: var(--branco);
-            border: 2px solid var(--cinza);
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .inventory-item.low-stock {
-            border-color: var(--amarelo);
-            background: #fff3cd;
-        }
-
-        .inventory-item.out-of-stock {
-            border-color: var(--vermelho);
-            background: #f8d7da;
-        }
-
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .quantity-btn {
-            width: 30px;
-            height: 30px;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .quantity-display {
-            min-width: 50px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .history-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .history-item-details {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-
-        .history-item-status {
-            font-weight: bold;
-        }
-
-        .history-item-notes {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .modal-actions .btn {
-            flex: 1;
-            margin-bottom: 0;
-        }
-
-        .suggestions-container {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 2px solid var(--cinza);
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        }
-
-        .suggestion-item {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--cinza);
-        }
-
-        .suggestion-item:hover {
-            background-color: var(--verde-claro);
-        }
-
-        .suggestion-category {
-            background-color: var(--bege);
-            padding: 5px 10px;
-            font-weight: bold;
-            color: var(--verde-escuro);
-        }
-
-        .purchase-status {
-            display: flex;
-            gap: 10px;
-            margin: 10px 0;
-        }
-
-        .status-btn {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .status-found {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .status-not-found {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .status-partial {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .price-input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin: 5px 0;
-        }
-
-        .recipe-card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .recipe-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: var(--verde-escuro);
-        }
-
-        .recipe-ingredients {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .recipe-instructions {
-            font-size: 14px;
-            color: #444;
-        }
-
-        .shopping-list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: var(--branco);
-            border: 2px solid var(--cinza);
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .shopping-item-info {
-            flex: 1;
-        }
-
-        .shopping-item-name {
-            font-weight: bold;
-        }
-
-        .shopping-item-quantity {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .shopping-item-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .filter-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-        }
-
-        .filter-btn {
-            padding: 8px 12px;
-            border-radius: 20px;
-            border: 2px solid var(--cinza);
-            background: var(--branco);
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .filter-btn.active {
-            background: var(--verde-medio);
-            color: white;
-            border-color: var(--verde-medio);
-        }
-
-        .quantity-unit {
-            display: flex;
-            gap: 10px;
-        }
-
-        .quantity-input {
-            flex: 2;
-        }
-
-        .unit-select {
-            flex: 1;
-        }
+   <style>
+    :root {
+        --verde-escuro: #2b4d2b;
+        --verde-medio: #4e7d4e;
+        --verde-claro: #b7d7b7;
+        --bege: #f6f3e7;
+        --branco: #fff;
+        --cinza: #e9ecef;
+        --azul: #0066cc;
+        --vermelho: #dc3545;
+        --amarelo: #ffc107;
+        --whatsapp: #25D366;
+        --roxo: #6f42c1;
+        --laranja: #fd7e14;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, var(--bege) 0%, var(--verde-claro) 100%);
+        min-height: 100vh;
+        color: var(--verde-escuro);
+    }
+
+    .container {
+        max-width: 450px;
+        margin: 0 auto;
+        background: var(--branco);
+        min-height: 100vh;
+        box-shadow: 0 0 20px rgba(43,77,43,0.08);
+        position: relative;
+    }
+
+    .header {
+        background: linear-gradient(135deg, var(--verde-escuro), var(--verde-medio));
+        color: var(--bege);
+        padding: 20px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 10px rgba(43,77,43,0.08);
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .header .subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .login-screen {
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    .sector-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 30px 0;
+    }
+
+    .sector-btn {
+        background: linear-gradient(135deg, var(--verde-medio), var(--verde-escuro));
+        color: var(--bege);
+        border: none;
+        padding: 20px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .sector-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(78,125,78,0.15);
+    }
+
+    .sector-btn.geral {
+        background: linear-gradient(135deg, var(--laranja), #e0570c);
+        grid-column: span 2;
+    }
+
+    .tabs {
+        display: flex;
+        background: var(--bege);
+        border-bottom: 1px solid var(--cinza);
+        overflow-x: auto;
+    }
+
+    .tab {
+        flex: 1;
+        padding: 15px 10px;
+        text-align: center;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s;
+        border-bottom: 3px solid transparent;
+        color: var(--verde-escuro);
+        font-size: 14px;
+        min-width: 100px;
+    }
+
+    .tab.active {
+        background: var(--branco);
+        border-bottom-color: var(--verde-medio);
+        color: var(--verde-medio);
+    }
+
+    .tab-content {
+        display: none;
+        padding: 20px;
+        padding-bottom: 100px;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--verde-escuro);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid var(--cinza);
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--verde-medio);
+    }
+
+    .btn {
+        background: linear-gradient(135deg, var(--verde-medio), var(--verde-escuro));
+        color: var(--bege);
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        width: 100%;
+        transition: all 0.3s;
+        margin-bottom: 10px;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(78,125,78,0.15);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, var(--vermelho), #c82333);
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, var(--amarelo), #e0a800);
+        color: var(--verde-escuro);
+    }
+
+    .btn-whatsapp {
+        background: linear-gradient(135deg, var(--whatsapp), #128C7E);
+        color: white;
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, var(--azul), #004d99);
+        color: white;
+    }
+
+    .btn-purple {
+        background: linear-gradient(135deg, var(--roxo), #5a32a3);
+        color: white;
+    }
+
+    .btn-orange {
+        background: linear-gradient(135deg, var(--laranja), #e0570c);
+        color: white;
+    }
+
+    .btn-small {
+        padding: 8px 12px;
+        font-size: 14px;
+        width: auto;
+        margin: 2px;
+    }
+
+    .item-card {
+        background: var(--branco);
+        border: 2px solid var(--cinza);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+    }
+
+    .item-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .item-name {
+        font-weight: 600;
+        font-size: 16px;
+        flex: 1;
+    }
+
+    .item-details {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        color: var(--verde-medio);
+        margin-bottom: 10px;
+    }
+
+    .item-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--verde-escuro);
+        color: var(--bege);
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(43,77,43,0.15);
+        transform: translateX(100%);
+        transition: transform 0.3s;
+        z-index: 1100;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+    }
+
+    .sector-info {
+        background: var(--verde-claro);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: var(--branco);
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        border: 2px solid var(--cinza);
+    }
+
+    .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--verde-escuro);
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: var(--verde-medio);
+        margin-top: 5px;
+    }
+
+    .inventory-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: var(--branco);
+        border: 2px solid var(--cinza);
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .inventory-item.low-stock {
+        border-color: var(--amarelo);
+        background: #fff3cd;
+    }
+
+    .inventory-item.out-of-stock {
+        border-color: var(--vermelho);
+        background: #f8d7da;
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .quantity-btn {
+        width: 30px;
+        height: 30px;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .quantity-display {
+        min-width: 50px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .history-item {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .history-item-details {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+
+    .history-item-status {
+        font-weight: bold;
+    }
+
+    .history-item-notes {
+        font-size: 14px;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .modal-actions .btn {
+        flex: 1;
+        margin-bottom: 0;
+    }
+
+    .suggestions-container {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 2px solid var(--cinza);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+
+    .suggestion-item {
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--cinza);
+    }
+
+    .suggestion-item:hover {
+        background-color: var(--verde-claro);
+    }
+
+    .suggestion-category {
+        background-color: var(--bege);
+        padding: 5px 10px;
+        font-weight: bold;
+        color: var(--verde-escuro);
+    }
+
+    .purchase-status {
+        display: flex;
+        gap: 10px;
+        margin: 10px 0;
+    }
+
+    .status-btn {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .status-found {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-not-found {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-partial {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .price-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin: 5px 0;
+    }
+
+    /* ===== Receitas (atualizado) ===== */
+    .recipe-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: 1px solid var(--cinza);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .recipe-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+    .recipe-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: var(--verde-escuro);
+        border-bottom: 2px solid var(--verde-claro);
+        padding-bottom: 10px;
+    }
+
+    .recipe-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+
+    .recipe-difficulty, 
+    .recipe-cost, 
+    .recipe-time, 
+    .recipe-serves {
+        padding: 6px 12px;
+        border-radius: 20px;
+        background-color: var(--verde-claro);
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .recipe-ingredients {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 15px;
+        line-height: 1.6;
+    }
+
+    .recipe-instructions {
+        font-size: 14px;
+        color: #444;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    .recipe-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 15px;
+    }
+    .recipe-filter {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding: 5px;
+    justify-content: center;
+    scrollbar-width: none;
+}
+
+.recipe-filter::-webkit-scrollbar {
+    display: none;
+}
+
+.recipe-filter-btn {
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: none;
+    background: linear-gradient(135deg, var(--verde-claro), var(--verde-medio));
+    color: var(--verde-escuro);
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(43, 77, 43, 0.1);
+    flex-shrink: 0;
+}
+
+.recipe-filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(43, 77, 43, 0.2);
+    background: linear-gradient(135deg, var(--verde-medio), var(--verde-escuro));
+    color: var(--bege);
+}
+
+.recipe-filter-btn.active {
+    background: linear-gradient(135deg, var(--verde-escuro), var(--verde-medio));
+    color: var(--bege);
+    box-shadow: 0 4px 8px rgba(43, 77, 43, 0.3);
+}
+    .btn-copy {
+        background: linear-gradient(135deg, var(--roxo), #5a32a3);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-copy:hover {
+        opacity: 0.9;
+    }
+
+    .shopping-list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: var(--branco);
+        border: 2px solid var(--cinza);
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .shopping-item-info {
+        flex: 1;
+    }
+
+    .shopping-item-name {
+        font-weight: bold;
+    }
+
+    .shopping-item-quantity {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .shopping-item-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    /* ===== FILTROS DE RECEITAS (CORRIGIDO) ===== */
+    .filter-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+        padding: 5px;
+        justify-content: center;
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .filter-buttons::-webkit-scrollbar {
+        display: none; /* Chrome, Safari */
+    }
+
+    .filter-btn {
+        padding: 12px 20px;
+        border-radius: 25px;
+        border: none;
+        background: linear-gradient(135deg, var(--verde-claro), var(--verde-medio));
+        color: var(--verde-escuro);
+        cursor: pointer;
+        white-space: nowrap;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(43, 77, 43, 0.1);
+        flex-shrink: 0;
+    }
+
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(43, 77, 43, 0.2);
+        background: linear-gradient(135deg, var(--verde-medio), var(--verde-escuro));
+        color: var(--bege);
+    }
+
+    .filter-btn.active {
+        background: linear-gradient(135deg, var(--verde-escuro), var(--verde-medio));
+        color: var(--bege);
+        box-shadow: 0 4px 8px rgba(43, 77, 43, 0.3);
+    }
+
+    /* Destaques para categorias específicas */
+    .filter-btn[data-category="proteínas"] {
+        background: linear-gradient(135deg, #ffb347, #ffcc33);
+        color: #5a3700;
+    }
+
+    .filter-btn[data-category="proteínas"]:hover,
+    .filter-btn[data-category="proteínas"].active {
+        background: linear-gradient(135deg, #e0a100, #ff8c00);
+        color: white;
+    }
+
+    .filter-btn[data-category="salada"] {
+        background: linear-gradient(135deg, #a8e6cf, #5cc2a5);
+        color: #004d40;
+    }
+
+    .filter-btn[data-category="salada"]:hover,
+    .filter-btn[data-category="salada"].active {
+        background: linear-gradient(135deg, #4db39e, #00796b);
+        color: white;
+    }
+
+    .filter-btn[data-category="sobremesas"] {
+        background: linear-gradient(135deg, #ffcce0, #ff99c8);
+        color: #880e4f;
+    }
+
+    .filter-btn[data-category="sobremesas"]:hover,
+    .filter-btn[data-category="sobremesas"].active {
+        background: linear-gradient(135deg, #f48fb1, #d81b60);
+        color: white;
+    }
+
+    .filter-btn[data-category="todos"] {
+        background: linear-gradient(135deg, var(--cinza), #d5d5d5);
+        color: #333;
+    }
+
+    .filter-btn[data-category="todos"]:hover,
+    .filter-btn[data-category="todos"].active {
+        background: linear-gradient(135deg, #a5a5a5, #757575);
+        color: white;
+    }
+
+    .quantity-unit {
+        display: flex;
+        gap: 10px;
+    }
+
+    .quantity-input {
+        flex: 2;
+    }
+
+    .unit-select {
+        flex: 1;
+    }
+
+    .serves-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid var(--cinza);
+        border-radius: 8px;
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
     </style>
+
 </head>
 <body>
     <div class="container">
@@ -730,6 +900,19 @@
                     <h3>🍳 Sugestões de Receitas</h3>
                     <p>Receitas baseadas nos itens disponíveis</p>
                 </div>
+
+                <div class="form-group">
+                    <label>Quantidade de Pessoas:</label>
+                    <input type="number" id="servesCount" class="serves-input" placeholder="Ex: 10" min="1" value="6">
+                </div>
+
+                <div class="filter-buttons">
+    <button class="filter-btn active" data-category="todas" onclick="filterRecipes('todas')">Todas</button>
+    <button class="filter-btn" data-category="proteina" onclick="filterRecipes('proteina')">Proteínas</button>
+    <button class="filter-btn" data-category="prato_quente" onclick="filterRecipes('prato_quente')">Pratos Quentes</button>
+    <button class="filter-btn" data-category="sobremesa" onclick="filterRecipes('sobremesa')">Sobremesas</button>
+    <button class="filter-btn" data-category="salada" onclick="filterRecipes('salada')">Salada</button>
+</div>
 
                 <button class="btn btn-purple" onclick="generateRecipes()" style="margin-bottom: 20px;">
                     🧠 Gerar Sugestões de Receitas
@@ -1036,6 +1219,789 @@
             { name: "Água sem gás", category: "Bebidas", unit: "ml" }
         ];
 
+        // Base de dados de receitas (60 receitas econômicas)
+        const recipesDatabase = [
+            // 20 RECEITAS DE PROTEÍNAS
+            {
+                id: 1,
+                name: "Frango Grelhado com Ervas",
+                ingredients: ["Frango", "Alho", "Limão", "Azeite"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "30 min",
+                serves: 4,
+                category: "proteina",
+                instructions: "Tempere o frango com alho, limão, azeite e sal. Grelhe por igual dos dois lados até dourar completamente."
+            },
+            {
+                id: 2,
+                name: "Frango Assado com Batatas",
+                ingredients: ["Frango", "Batata", "Cebola", "Alho", "Limão"],
+                difficulty: "Médio",
+                cost: "Baixo",
+                prepTime: "60 min",
+                serves: 6,
+                category: "proteina",
+                instructions: "Tempere o frango e coloque em uma assadeira com batatas, cebola e alho. Asse por 45-50 minutos até dourar."
+            },
+            {
+                id: 3,
+                name: "Frango à Parmegiana",
+                ingredients: ["Frango", "Queijo", "Farinha de trigo", "Ovos", "Molho de tomate"],
+                difficulty: "Médio",
+                cost: "Médio",
+                prepTime: "45 min",
+                serves: 4,
+                category: "proteina",
+                instructions: "Passe o frango na farinha, ovo e farinha novamente. Frite e cubra com molho de tomate e queijo. Leve ao forno para gratinar."
+            },
+            {
+                id: 4,
+                name: "Frango Xadrez",
+                ingredients: ["Frango", "Pimentão", "Cebola", "Molho shoyo", "Gengibre"],
+                difficulty: "Médio",
+                cost: "Médio",
+                prepTime: "35 min",
+                serves: 4,
+                category: "proteina",
+                instructions: "Corte o frango em cubos e refogue com os legumes. Adicione molho shoyo e gengibre ralado. Sirva com arroz."
+            },
+            {
+               
+                name: "Frango com Quiabo",
+                ingredients: ["Frango", "Quiabo", "Tomate", "Cebola", "Coentro"],
+                difficulty: "Médio",
+                cost: "Baixo",
+                prepTime: "40 min",
+                serves: 4,
+                category: "proteina",
+                instructions: "Refogue o frango com cebola e tomate. Adicione o quiabo e um pouco de água. Cozinhe até o frango ficar macio. Finalize com coentro."
+            },
+            {
+                id: 6,
+                name: "Frango Ensopado",
+                ingredients: ["Frango", "Batata", "Cenoura", "Cebola", "Alho"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "50 min",
+                serves: 6,
+                category: "proteina",
+                instructions: "Cozinhe o frango com os legumes em água suficiente para formar um caldo. Tempere a gosto e sirva quente."
+            },
+            {
+                id: 7,
+                name: "Frango à Passarinho",
+                ingredients: ["Frango", "Farinha de trigo", "Alho", "Limão", "Óleo"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "40 min",
+                serves: 4,
+                category: "proteina",
+                instructions: "Tempere o frango com alho e limão. Passe na farinha e frite em óleo quente até ficar crocante."
+            },
+            {
+                id: 8,
+                name: "Bife Acebolado",
+                ingredients: ["Carne", "Cebola", "Alho", "Óleo"],
+                difficulty: "Fácil",
+                cost: "Médio",
+                prepTime: "25 min",
+                serves: 4,
+                category: "proteina",
+                instructions: "Tempere os bifes e frite rapidamente. Reserve. Refogue a cebola no mesmo óleo e coloque sobre a carne."
+            },
+            {
+                id: 9,
+                name: "Carne de Panela",
+                ingredients: ["Carne", "Batata", "Cenoura", "Cebola", "Alho"],
+                difficulty: "Fácil",
+                cost: "Médio",
+                prepTime: "60 min",
+                serves: 6,
+                category: "proteina",
+                instructions: "Cozinhe a carne com os temperos até ficar macia. Adicione os legumes e cozinhe até ficarem macios."
+            },
+            {
+                id: 10,
+                name: "Strogonoff de Carne",
+                ingredients: ["Carne", "Cebola", "Creme de leite", "Extrato de tomate"],
+                difficulty: "Médio",
+                cost: "Médio",
+                prepTime: "40 min",
+                serves: 4,
+                category: "proteina",
+                instructions: "Refogue a carne com cebola. Adicione extrato de tomate. Finalize com creme de leite e sirva com arroz."
+            },
+            {
+                id: 11,
+                name: "Carne Louca",
+                ingredients: ["Carne", "Pimentão", "Cebola", "Tomate", "Molho shoyo"],
+                difficulty: "Médio",
+                cost: "Médio",
+                prepTime: "45 min",
+                serves: 6,
+                category: "proteina",
+                instructions: "Desfie a carne já cozida e refogue com os legumes. Adicione molho shoyo e temperos a gosto."
+            },
+            {
+                id: 12,
+                name: "Picadinho de Carne",
+                ingredients: ["Carne", "Batata", "Cenoura", "Cebola", "Alho"],
+                difficulty: "Médio",
+                cost: "Médio",
+                prepTime: "50 min",
+                serves: 6,
+                category: "proteina",
+                instructions: "Corte a carne em cubos e cozinhe com os legumes. Tempere e sirva com arroz branco."
+            },
+            {
+                id: 13,
+                name: "Bife à Cavalo",
+                ingredients: ["Carne", "Ovos", "Arroz", "Alho"],
+                difficulty: "Fácil",
+                cost: "Médio",
+                prepTime: "25 min",
+                serves: 4,
+                category: "proteina",
+                instructions: "Frite os bifes e reserve. Frite os ovos e coloque sobre a carne. Sirva com arroz e alho frito."
+            },
+            {
+                id: 14,
+                name: "Carne Assada",
+                ingredients: ["Carne", "Alho", "Cebola", "Limão"],
+                difficulty: "Fácil",
+                cost: "Médio",
+                prepTime: "60 min",
+                serves: 6,
+                category: "proteina",
+                instructions: "Tempere a carne com alho, cebola, limão e sal. Asse em forno médio por aproximadamente 45 minutos."
+            },
+            {
+                id: 15,
+                name: "Costelinha de Porco Assada",
+                ingredients: ["Costelinha de porco", "Alho", "Limão", "Sal"],
+                difficulty: "Fácil",
+                cost: "Médio",
+                prepTime: "60 min",
+                serves: 4,
+                category: "proteina",
+                instructions: "Tempere a costelinha com alho, limão e sal. Asse em forno médio até dourar e ficar crocante."
+            },
+            {
+                id: 16,
+                name: "Linguiça Acebolada",
+                ingredients: ["Linguiça", "Cebola", "Pimentão", "Alho"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "25 min",
+                serves: 4,
+                category: "proteina",
+                instructions: "Frite a linguiça e reserve. Refogue cebola, pimentão e alho. Junte a linguiça e sirva."
+            },
+            {
+                id: 17,
+                name: "Omelete de Queijo",
+                ingredients: ["Ovos", "Queijo", "Tomate", "Cebola"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "15 min",
+                serves: 2,
+                category: "proteina",
+                instructions: "Bata os ovos, adicione queijo ralado e tomate picado. Despeje em uma frigideira antiaderente e cozinhe dos dois lados."
+            },
+            {
+                id: 18,
+                name: "Ovos Mexidos",
+                ingredients: ["Ovos", "Cebolinha", "Tomate", "Queijo"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "10 min",
+                serves: 2,
+                category: "proteina",
+                instructions: "Bata os ovos e misture com os ingredientes picados. Mexa em fogo baixo até ficarem cremosos."
+            },
+            {
+                id: 19,
+                name: "Atum com Maionese",
+                ingredients: ["Atum", "Maionese", "Cebola", "Salsinha"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "10 min",
+                serves: 2,
+                category: "proteina",
+                instructions: "Misture o atum escorrido com maionese, cebola picada e salsinha. Sirva com pão ou torradas."
+            },
+            {
+                id: 20,
+                name: "Sardinha Grelhada",
+                ingredients: ["Sardinha", "Limão", "Alho", "Sal"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "15 min",
+                serves: 2,
+                category: "proteina",
+                instructions: "Tempere as sardinhas com limão, alho e sal. Grelhe por alguns minutos de cada lado."
+            },
+
+            // 20 PRATOS QUENTES
+            {
+                id: 21,
+                name: "Arroz de Forno",
+                ingredients: ["Arroz", "Queijo", "Leite", "Ovos"],
+                difficulty: "Médio",
+                cost: "Baixo",
+                prepTime: "50 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Misture arroz cozido com os outros ingredientes. Coloque em forma untada e asse até dourar."
+            },
+            {
+                id: 22,
+                name: "Lasanha de Carne",
+                ingredients: ["Carne moída", "Massa para lasanha", "Queijo", "Molho de tomate"],
+                difficulty: "Médio",
+                cost: "Médio",
+                prepTime: "60 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Refogue a carne com molho de tomate. Monte camadas de massa, carne e queijo. Asse por 30 minutos."
+            },
+            {
+                id: 23,
+                name: "Macarrão à Bolonhesa",
+                ingredients: ["Macarrão", "Carne moída", "Molho de tomate", "Cebola", "Alho"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "30 min",
+                serves: 4,
+                category: "prato_quente",
+                instructions: "Cozinhe o macarrão. Refogue a carne com cebola, alho e molho de tomate. Misture com o macarrão escorrido."
+            },
+            {
+                id: 24,
+                name: "Macarrão com Atum",
+                ingredients: ["Macarrão", "Atum", "Cebola", "Tomate"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "25 min",
+                serves: 4,
+                category: "prato_quente",
+                instructions: "Cozinhe o macarrão. Refogue cebola e tomate, adicione o atum e misture com o macarrão escorrido."
+            },
+            {
+                id: 25,
+                name: "Polenta Mole",
+                ingredients: ["Fubá de milho", "Água", "Queijo", "Sal"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "20 min",
+                serves: 4,
+                category: "prato_quente",
+                instructions: "Cozinhe o fubá em água salgada, mexendo sempre. Quando engrossar, adicione queijo e sirva."
+            },
+            {
+                id: 26,
+                name: "Polenta Frita",
+                ingredients: ["Fubá de milho", "Água", "Sal", "Óleo"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "40 min",
+                serves: 4,
+                category: "prato_quente",
+                instructions: "Cozinhe o fubá e coloque em uma forma. Deixe esfriar e corte em pedaços. Frite até dourar."
+            },
+            {
+                id: 27,
+                name: "Cuscuz Paulista",
+                ingredients: ["Fubá", "Ovos", "Tomate", "Cebola", "Sardinha"],
+                difficulty: "Médio",
+                cost: "Baixo",
+                prepTime: "40 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Misture todos os ingredientes e coloque na cuscuzeira. Cozinhe no vapor por 20 minutos."
+            },
+            {
+                id: 28,
+                name: "Torta de Frango",
+                ingredients: ["Frango", "Farinha de trigo", "Ovos", "Leite"],
+                difficulty: "Médio",
+                cost: "Baixo",
+                prepTime: "50 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Prepare o frango desfiado. Faça uma massa com farinha, ovos e leite. Coloque o frango entre duas camadas de massa e asse."
+            },
+            {
+                id: 29,
+                name: "Escondidinho de Carne",
+                ingredients: ["Carne moída", "Batata", "Queijo", "Cebola", "Alho"],
+                difficulty: "Médio",
+                cost: "Baixo",
+                prepTime: "45 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Refogue a carne com cebola e alho. Faça um purê de batata. Em uma forma, coloque a carne e cubra com o purê e queijo. Asse até gratinar."
+            },
+            {
+                id: 30,
+                name: "Sopa de Legumes",
+                ingredients: ["Batata", "Cenoura", "Cebola", "Alho", "Macarrão"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "35 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Pique os legumes e refogue com cebola e alho. Adicione água e cozinhe até os legumes ficarem macios. Adicione macarrão e cozinhe até ficar pronto."
+            },
+            {
+                id: 31,
+                name: "Caldo Verde",
+                ingredients: ["Batata", "Couve", "Calabresa", "Cebola", "Alho"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "40 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Cozinhe as batatas e faça um purê. Refogue calabresa com cebola e alho. Junte tudo, adicione couve picada e cozinhe por mais 10 minutos."
+            },
+            {
+                id: 32,
+                name: "Feijão Tropeiro",
+                ingredients: ["Feijão", "Farinha de mandioca", "Ovos", "Cebola", "Alho"],
+                difficulty: "Médio",
+                cost: "Baixo",
+                prepTime: "40 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Cozinhe o feijão. Refogue cebola, alho e bacon. Adicione o feijão, farinha de mandioca e ovos cozidos picados. Misture bem e sirva."
+            },
+            {
+                id: 33,
+                name: "Virado à Paulista",
+                ingredients: ["Feijão", "Farinha de mandioca", "Bisteca", "Ovos", "Couve"],
+                difficulty: "Médio",
+                cost: "Médio",
+                prepTime: "50 min",
+                serves: 4,
+                category: "prato_quente",
+                instructions: "Refogue o feijão com farinha de mandioca. Frite a bisteca e os ovos. Refogue a couve. Sirva tudo junto."
+            },
+            {
+                id: 34,
+                name: "Arroz Carreteiro",
+                ingredients: ["Arroz", "Carne seca", "Cebola", "Alho", "Pimentão"],
+                difficulty: "Médio",
+                cost: "Médio",
+                prepTime: "60 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Cozinhe a carne seca e desfie. Refogue com cebola, alho e pimentão. Adicione o arroz e água. Cozinhe até o arroz ficar pronto."
+            },
+            {
+                id: 35,
+                name: "Baião de Dois",
+                ingredients: ["Arroz", "Feijão", "Queijo", "Cebola", "Alho"],
+                difficulty: "Médio",
+                cost: "Baixo",
+                prepTime: "50 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Cozinhe o feijão quase até ficar pronto. Adicione o arroz, cebola, alho e temperos. Cozinhe até o arroz ficar pronto. Finalize com queijo."
+            },
+            {
+                id: 36,
+                name: "Canjiquinha com Costela",
+                ingredients: ["Milho para canjica", "Costela", "Cebola", "Alho", "Louro"],
+                difficulty: "Médio",
+                cost: "Médio",
+                prepTime: "90 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Cozinhe a costela até ficar macia. Adicione o milho para canjica e cozinhe até ficar macio. Tempere com cebola, alho e louro."
+            },
+            {
+                id: 37,
+                name: "Galinhada",
+                ingredients: ["Arroz", "Frango", "Açafrão", "Cebola", "Alho"],
+                difficulty: "Médio",
+                cost: "Baixo",
+                prepTime: "45 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Refogue o frango com cebola e alho. Adicione arroz, açafrão e água. Cozinhe até o arroz ficar pronto."
+            },
+            {
+                id: 38,
+                name: "Empadão de Frango",
+                ingredients: ["Frango", "Farinha de trigo", "Ovos", "Leite", "Margarina"],
+                difficulty: "Médio",
+                cost: "Médio",
+                prepTime: "60 min",
+                serves: 6,
+                category: "prato_quente",
+                instructions: "Prepare o frango desfiado. Faça uma massa com farinha, margarina, ovos e leite. Coloque o frango entre duas camadas de massa e asse."
+            },
+            {
+                id: 39,
+                name: "Panqueca de Carne",
+                ingredients: ["Carne moída", "Farinha de trigo", "Ovos", "Leite", "Molho de tomate"],
+                difficulty: "Médio",
+                cost: "Baixo",
+                prepTime: "45 min",
+                serves: 4,
+                category: "prato_quente",
+                instructions: "Faça a massa com farinha, ovos e leite. Prepare o recheio com carne moída. Enrole as panquecas e cubra com molho de tomate."
+            },
+            {
+                id: 40,
+                name: "Risoto de Frango",
+                ingredients: ["Arroz", "Frango", "Cebola", "Alho", "Queijo"],
+                difficulty: "Médio",
+                cost: "Médio",
+                prepTime: "40 min",
+                serves: 4,
+                category: "prato_quente",
+                instructions: "Refogue o frango com cebola e alho. Adicione o arroz e vá acrescentando água quente aos poucos, mexendo sempre. Finalize com queijo."
+            },
+
+            // 20 SOBREMESAS
+            {
+                id: 41,
+                name: "Pudim de Leite",
+                ingredients: ["Leite condensado", "Leite", "Ovos", "Açúcar"],
+                difficulty: "Médio",
+                cost: "Baixo",
+                prepTime: "60 min",
+                serves: 8,
+                category: "sobremesa",
+                instructions: "Faça uma calda com açúcar. Bata os outros ingredientes no liquidificador e despeje sobre a calda. Cozinhe em banho-maria."
+            },
+            {
+                id: 42,
+                name: "Brigadeiro",
+                ingredients: ["Leite condensado", "Chocolate em pó", "Margarina", "Chocolate granulado"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "20 min",
+                serves: 20,
+                category: "sobremesa",
+                instructions: "Misture todos os ingredientes em uma panela e cozinhe em fogo baixo, mexendo sempre, até desgrudar do fundo. Deixe esfriar e faça bolinhas."
+            },
+            {
+                id: 43,
+                name: "Beijinho",
+                ingredients: ["Leite condensado", "Coco ralado", "Margarina", "Açúcar"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "20 min",
+                serves: 20,
+                category: "sobremesa",
+                instructions: "Misture todos os ingredientes em uma panela e cozinhe em fogo baixo, mexendo sempre, até desgrudar do fundo. Deixe esfriar e faça bolinhas. Passe no açúcar."
+            },
+            {
+                id: 44,
+                name: "Mousse de Maracujá",
+                ingredients: ["Maracujá", "Leite condensado", "Creme de leite"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "10 min",
+                serves: 6,
+                category: "sobremesa",
+                instructions: "Bata todos os ingredientes no liquidificador até ficar homogêneo. Leve à geladeira por pelo menos 3 horas antes de servir."
+            },
+            {
+                id: 45,
+                name: "Mousse de Chocolate",
+                ingredients: ["Chocolate em pó", "Leite condensado", "Creme de leite"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "10 min",
+                serves: 6,
+                category: "sobremesa",
+                instructions: "Bata todos os ingredientes no liquidificador até ficar homogêneo. Leve à geladeira por pelo menos 3 horas antes de servir."
+            },
+            {
+                id: 46,
+                name: "Mousse de Limão",
+                ingredients: ["Limão", "Leite condensado", "Creme de leite"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "10 min",
+                serves: 6,
+                category: "sobremesa",
+                instructions: "Bata todos os ingredientes no liquidificador até ficar homogêneo. Leve à geladeira por pelo menos 3 horas antes de servir."
+            },
+            {
+                id: 47,
+                name: "Pavê de Chocolate",
+                ingredients: ["Biscoito maizena", "Chocolate em pó", "Leite condensado", "Creme de leite"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "30 min",
+                serves: 8,
+                category: "sobremesa",
+                instructions: "Faça um creme com chocolate, leite condensado e creme de leite. Monte camadas de biscoito e creme. Leve à geladeira por 3 horas."
+            },
+            {
+                id: 48,
+                name: "Pavê de Morango",
+                ingredients: ["Biscoito maizena", "Morango", "Leite condensado", "Creme de leite"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "30 min",
+                serves: 8,
+                category: "sobremesa",
+                instructions: "Faça um creme com leite condensado e creme de leite. Monte camadas de biscoito, creme e morangos. Leve à geladeira por 3 horas."
+            },
+            {
+                id: 49,
+                name: "Arroz Doce",
+                ingredients: ["Arroz", "Leite", "Açúcar", "Canela"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "45 min",
+                serves: 6,
+                category: "sobremesa",
+                instructions: "Cozinhe o arroz com água. Quando estiver quase seco, adicione leite e açúcar. Cozinhe em fogo baixo até cremoso. Polvilhe com canela."
+            },
+            {
+                id: 50,
+                name: "Canjica",
+                ingredients: ["Milho para canjica", "Leite", "Açúcar", "Canela"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "60 min",
+                serves: 6,
+                category: "sobremesa",
+                instructions: "Cozinhe o milho até ficar macio. Adicione leite e açúcar e cozinhe até engrossar. Polvilhe com canela."
+            },
+            {
+                id: 51,
+                name: "Curau de Milho",
+                ingredients: ["Milho verde", "Leite", "Açúcar", "Canela"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "40 min",
+                serves: 6,
+                category: "sobremesa",
+                instructions: "Bata o milho com leite. Coe e leve ao fogo com açúcar, mexendo sempre, até engrossar. Polvilhe com canela."
+            },
+            {
+                id: 52,
+                name: "Gelatina Colorida",
+                ingredients: ["Gelatina vários sabores", "Água"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "20 min",
+                serves: 6,
+                category: "sobremesa",
+                instructions: "Prepare a gelatina conforme instruções da embalagem. Leve à geladeira até firmar."
+            },
+            {
+                id: 53,
+                name: "Gelatina com Creme",
+                ingredients: ["Gelatina", "Leite condensado", "Creme de leite"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "30 min",
+                serves: 8,
+                category: "sobremesa",
+                instructions: "Prepare a gelatina e deixe na geladeira até firmar. Bata o leite condensado com creme de leite e coloque sobre a gelatina."
+            },
+            {
+                id: 54,
+                name: "Bolo de Cenoura",
+                ingredients: ["Cenoura", "Farinha de trigo", "Ovos", "Açúcar", "Óleo"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "50 min",
+                serves: 10,
+                category: "sobremesa",
+                instructions: "Bata a cenoura, ovos e óleo. Adicione farinha e açúcar. Asse por aproximadamente 30 minutos."
+            },
+            {
+                id: 55,
+                name: "Bolo de Chocolate",
+                ingredients: ["Farinha de trigo", "Chocolate em pó", "Ovos", "Açúcar", "Óleo"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "50 min",
+                serves: 10,
+                category: "sobremesa",
+                instructions: "Misture todos os ingredientes e bata bem. Asse por aproximadamente 30 minutos."
+            },
+            {
+                id: 56,
+                name: "Bolo de Laranja",
+                ingredients: ["Laranja", "Farinha de trigo", "Ovos", "Açúcar", "Óleo"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "50 min",
+                serves: 10,
+                category: "sobremesa",
+                instructions: "Bata a laranja, ovos e óleo. Adicione farinha e açúcar. Asse por aproximadamente 30 minutos."
+            },
+            {
+                id: 57,
+                name: "Bolo de Fubá",
+                ingredients: ["Fubá de milho", "Farinha de trigo", "Ovos", "Açúcar", "Leite"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "50 min",
+                serves: 10,
+                category: "sobremesa",
+                instructions: "Misture todos os ingredientes e bata bem. Asse por aproximadamente 30 minutos."
+            },
+            {
+                id: 58,
+                name: "Bolo de Milho",
+                ingredients: ["Milho verde", "Fubá", "Ovos", "Açúcar", "Leite"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "50 min",
+                serves: 10,
+                category: "sobremesa",
+                instructions: "Bata o milho com os outros ingredientes. Asse por aproximadamente 30 minutos."
+            },
+            {
+                id: 59,
+                name: "Cocada",
+                ingredients: ["Coco ralado", "Açúcar", "Leite condensado"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "30 min",
+                serves: 10,
+                category: "sobremesa",
+                instructions: "Misture todos os ingredientes em uma panela e cozinhe em fogo baixo, mexendo sempre, até desgrudar do fundo. Modele em forminhas."
+            },
+            {
+                id: 60,
+                name: "Doce de Leite",
+                ingredients: ["Leite condensado"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "30 min",
+                serves: 6,
+                category: "sobremesa",
+                instructions: "Cozinhe a lata de leite condensado na pressão por 30 minutos. Deixe esfriar completamente antes de abrir."
+            },
+            
+                // 10 RECEITAS DE SALADAS
+     {
+                id: 61,
+                name: "Salada Verde Simples",
+                ingredients: ["Alface", "Tomate", "Cebola", "Azeite", "Limão"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "10 min",
+                serves: 4,
+                category: "salada",
+                instructions: "Lave e pique as folhas. Adicione tomate e cebola em rodelas. Tempere com azeite, limão e sal a gosto."
+            },
+            {
+                id: 62,
+                name: "Salada de Alface com Maionese",
+                ingredients: ["Alface", "Maionese", "Cebola", "Tomate"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "10 min",
+                serves: 4,
+                category: "salada",
+                instructions: "Corte a alface em tiras, adicione tomate e cebola picados. Misture com maionese e sirva."
+            },
+            {
+                id: 63,
+                name: "Salada de Tomate com Cebola",
+                ingredients: ["Tomate", "Cebola", "Azeite", "Salsinha"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "10 min",
+                serves: 4,
+                category: "salada",
+                instructions: "Corte os tomates e cebolas em rodelas. Tempere com azeite, sal e salsinha picada."
+            },
+            {
+                id: 64,
+                name: "Salada de Batata",
+                ingredients: ["Batata", "Cebola", "Maionese", "Salsinha"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "25 min",
+                serves: 4,
+                category: "salada",
+                instructions: "Cozinhe as batatas e corte em cubos. Misture com cebola picada, maionese e salsinha."
+            },
+            {
+                id: 65,
+                name: "Salada de Chuchu",
+                ingredients: ["Chuchu", "Cenoura", "Milho verde", "Maionese"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "20 min",
+                serves: 4,
+                category: "salada",
+                instructions: "Cozinhe o chuchu e a cenoura e corte em cubos. Misture com milho verde e maionese."
+            },
+            {
+                id: 66,
+                name: "Salada de Beterraba",
+                ingredients: ["Beterraba", "Cebola", "Azeite", "Limão"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "30 min",
+                serves: 4,
+                category: "salada",
+                instructions: "Cozinhe a beterraba e corte em cubos ou rodelas. Tempere com cebola, azeite, limão e sal."
+            },
+            {
+                id: 67,
+                name: "Salada de Cenoura com Maionese",
+                ingredients: ["Cenoura", "Maionese", "Cebola", "Salsinha"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "15 min",
+                serves: 4,
+                category: "salada",
+                instructions: "Rale a cenoura crua. Misture com cebola picada, maionese e salsinha."
+            },
+            {
+                id: 68,
+                name: "Salada de Repolho",
+                ingredients: ["Repolho", "Cenoura", "Maionese", "Limão"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "15 min",
+                serves: 4,
+                category: "salada",
+                instructions: "Corte o repolho em tiras finas e rale a cenoura. Tempere com maionese, limão e sal."
+            },
+            {
+                id: 69,
+                name: "Salada de Agrião",
+                ingredients: ["Agrião", "Tomate", "Cebola", "Azeite"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "10 min",
+                serves: 4,
+                category: "salada",
+                instructions: "Lave o agrião. Adicione tomate e cebola em rodelas. Tempere com azeite e sal."
+            },
+            {
+                id: 70,
+                name: "Salada de Frutas",
+                ingredients: ["Maçã", "Banana", "Laranja", "Uva", "Açúcar"],
+                difficulty: "Fácil",
+                cost: "Baixo",
+                prepTime: "15 min",
+                serves: 4,
+                category: "salada",
+                instructions: "Corte todas as frutas em pedaços. Misture e adoce com açúcar a gosto. Sirva gelada."
+            }
+
+            
+        ];
+
         // Estado da aplicação
         let currentSector = null;
         let currentSectorItems = [];
@@ -1044,6 +2010,7 @@
         let currentHistoryDetails = null;
         let shoppingList = [];
         let purchaseStatus = '';
+        let currentRecipeFilter = 'todas';
 
         // Carregar dados do localStorage
         function loadData() {
@@ -1152,6 +2119,22 @@
             }
             
             updateUI();
+        }
+
+        // Filtrar receitas por categoria
+        function filterRecipes(category) {
+            currentRecipeFilter = category;
+            
+            // Ativar o botão de filtro selecionado
+            document.querySelectorAll('.recipe-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Se já tiver receitas geradas, refiltrar
+            if (document.getElementById('recipesList').innerHTML !== '') {
+                generateRecipes();
+            }
         }
 
         // Mostrar sugestões de produtos
@@ -1599,44 +2582,92 @@
             window.open(whatsappUrl, '_blank');
         }
 
-        // Gerar receitas com IA (simulado)
+        // Gerar receitas com base nos itens disponíveis
         function generateRecipes() {
-            // Esta é uma simulação - em um sistema real, isso se conectaria a uma API de IA
-            const availableItems = currentInventory.map(item => item.name).join(', ');
+            // Obter itens disponíveis no inventário
+            const availableItems = currentInventory
+                .filter(item => item.quantity > 0)
+                .map(item => item.name);
             
-            // Receitas pré-definidas baseadas nos itens disponíveis
-            const recipes = [
-                {
-                    title: "Risoto de Frango com Legumes",
-                    ingredients: "Arroz, frango, cenoura, vagem, cebola, alho, queijo",
-                    instructions: "Cozinhe o frango e desfie. Refogue os legumes, adicione o arroz e caldo de galinha. Acrescente o frango e finalize com queijo."
-                },
-                {
-                    title: "Salada Mediterrânea",
-                    ingredients: "Alface, tomate, pepino, queijo feta, azeitonas, azeite de oliva",
-                    instructions: "Corte todos os ingredientes em cubos, misture e tempere com azeite, sal e limão."
-                },
-                {
-                    title: "Smoothie Energético",
-                    ingredients: "Banana, morango, iogurte, aveia, mel",
-                    instructions: "Bata todos os ingredientes no liquidificador até obter uma consistência homogênea. Sirva gelado."
-                }
-            ];
+            // Obter quantidade de pessoas
+            const servesCount = parseInt(document.getElementById('servesCount').value) || 6;
             
+            // Se não houver itens no inventário
+            if (availableItems.length === 0) {
+                showNotification('Não há itens no inventário para sugerir receitas!', 'error');
+                return;
+            }
+            
+            // Filtrar receitas pela categoria selecionada
+            let filteredRecipes = recipesDatabase;
+            if (currentRecipeFilter !== 'todas') {
+                filteredRecipes = filteredRecipes.filter(recipe => recipe.category === currentRecipeFilter);
+            }
+            
+            // Encontrar receitas que podem ser feitas com os itens disponíveis
+            const possibleRecipes = filteredRecipes.filter(recipe => {
+                // Verificar se temos pelo menos 70% dos ingredientes da receita
+                const availableIngredients = recipe.ingredients.filter(ingredient => 
+                    availableItems.some(item => item.toLowerCase().includes(ingredient.toLowerCase()))
+                );
+                
+                return availableIngredients.length >= Math.floor(recipe.ingredients.length * 0.7);
+            });
+            
+            // Se não encontrou receitas possíveis
+            if (possibleRecipes.length === 0) {
+                showNotification('Não encontramos receitas com os itens disponíveis no momento.', 'info');
+                return;
+            }
+            
+            // Ordenar por dificuldade e custo
+            possibleRecipes.sort((a, b) => {
+                if (a.difficulty === "Fácil" && b.difficulty !== "Fácil") return -1;
+                if (a.difficulty !== "Fácil" && b.difficulty === "Fácil") return 1;
+                if (a.cost === "Baixo" && b.cost !== "Baixo") return -1;
+                if (a.cost !== "Baixo" && b.cost === "Baixo") return 1;
+                return 0;
+            });
+            
+            // Limitar a 10 sugestões
+            const suggestions = possibleRecipes.slice(0, 10);
+            
+            // Exibir as receitas
             const recipesList = document.getElementById('recipesList');
             recipesList.innerHTML = '';
             
-            recipes.forEach(recipe => {
+            suggestions.forEach(recipe => {
+                // Ajustar quantidade de ingredientes conforme número de pessoas
+                const adjustedServes = Math.max(2, Math.ceil(servesCount / 2) * 2); // Arredonda para múltiplos de 2
+                const serveMultiplier = adjustedServes / recipe.serves;
+                
+                // Destacar ingredientes disponíveis vs. faltantes
+                const ingredientsList = recipe.ingredients.map(ingredient => {
+                    const isAvailable = availableItems.some(item => 
+                        item.toLowerCase().includes(ingredient.toLowerCase())
+                    );
+                    
+                    return isAvailable 
+                        ? `<span style="color: green;">✅ ${ingredient}</span>` 
+                        : `<span style="color: red;">❌ ${ingredient}</span>`;
+                }).join(', ');
+                
                 recipesList.innerHTML += `
                     <div class="recipe-card">
-                        <div class="recipe-title">${recipe.title}</div>
-                        <div class="recipe-ingredients"><strong>Ingredientes:</strong> ${recipe.ingredients}</div>
+                        <div class="recipe-title">${recipe.name}</div>
+                        <div class="recipe-details">
+                            <span class="recipe-difficulty">Dificuldade: ${recipe.difficulty}</span>
+                            <span class="recipe-cost">Custo: ${recipe.cost}</span>
+                            <span class="recipe-time">Tempo: ${recipe.prepTime}</span>
+                            <span class="recipe-serves">Porções: ${adjustedServes}</span>
+                        </div>
+                        <div class="recipe-ingredients"><strong>Ingredientes:</strong> ${ingredientsList}</div>
                         <div class="recipe-instructions"><strong>Modo de preparo:</strong> ${recipe.instructions}</div>
                     </div>
                 `;
             });
             
-            showNotification('Receitas geradas com base nos itens disponíveis!');
+            showNotification(`Encontramos ${suggestions.length} receitas possíveis com seus ingredientes!`);
         }
 
         // Ver detalhes do histórico
